@@ -1,0 +1,80 @@
+
+/* Scroll independiente en el menú lateral */
+
+.scrollIndependiente::-webkit-scrollbar {
+    width: 4px;
+}
+.scrollIndependiente::-webkit-scrollbar-track {
+    background: transparent;
+}
+.scrollIndependiente::-webkit-scrollbar-thumb {
+    background: #e0e7ff; 
+    border-radius: 10px;
+}
+
+
+
+
+
+/* Clase para que el input sea visualmente indistinguible del texto */
+.input-invisible {
+    border: none !important;
+    outline: none !important;
+    background-color: transparent !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    width: 100%;
+    /* Elimina el brillo azul/resaltado en móviles (Chrome/Safari) */
+    -webkit-tap-highlight-color: transparent;
+    /* Hace que el cursor sea el de texto normal, no el de edición */
+    cursor: default;
+    /* Resetea la apariencia nativa del sistema */
+    appearance: none;
+    -moz-appearance: none;
+    -webkit-appearance: none;
+}
+
+/* Evita cualquier efecto visual al hacer clic o foco */
+.input-invisible:focus {
+    outline: none !important;
+    box-shadow: none !important;
+    border: none !important;
+}
+
+/* Opcional: si quieres que el texto largo se oculte con puntos suspensivos 
+   pero se pueda navegar al hacer clic */
+.input-invisible {
+    text-overflow: ellipsis;
+}
+
+
+
+
+
+/* Esto afecta a TODO el proyecto automáticamente */
+@layer base {
+  /* Chrome, Safari, Edge */
+  ::-webkit-scrollbar {
+    width: 6px;  /* Vertical */
+    height: 6px; /* Horizontal */
+  }
+
+  ::-webkit-scrollbar-track {
+    background: #f8fafc; /* slate-50 */
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: #c7d2fe; /* indigo-200 */
+    border-radius: 10px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: #a5b4fc; /* indigo-300 */
+  }
+
+  /* Firefox (Estándar) */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: #c7d2fe #f8fafc;
+  }
+}
