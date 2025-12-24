@@ -1,0 +1,834 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Master -  Asignar Unidades</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'css/estiloGlobal.css' %}">
+    <link rel="icon" type="image/png" href="{% static 'img/icono.png' %}">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Poppins', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-slate-50 font-sans antialiased text-slate-900">
+    {% include 'base/mensajes.html' %}
+    
+    <div class="flex h-screen overflow-hidden">
+        
+        <aside id="sidebar-principal" class="fixed inset-y-0 left-0 w-64 bg-white shadow-xl flex flex-col z-50 border-r border-indigo-50 h-full flex-shrink-0 transition-transform duration-300 transform -translate-x-full lg:relative lg:translate-x-0">
+            <div class="p-6 border-b border-indigo-50 relative">
+                
+                <div class="absolute left-6 top-8">
+                    <a href="{% url 'editar_ccpp' ccpp.id %}" class="text-slate-400 hover:text-indigo-600 transition-colors flex items-center">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                        </svg>
+                    </a>
+                </div>
+
+                <div class="absolute right-6 top-7 lg:hidden">
+                    <button onclick="alternarMenu()" class="p-2 text-slate-400 hover:text-red-500">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+
+                <div class="flex flex-col items-center">
+                    <a href="{% url 'panel_principal' %}" class="space-x-3">
+                        <div class="flex items-center gap-3 mb-6">
+                            <div class="flex-shrink-0">
+                                <img src="{% static 'img/logo.png' %}" 
+                                    alt="Logo MASTER" 
+                                    class="w-12 h-12 object-contain drop-shadow-sm transition-transform duration-300 hover:scale-110">
+                            </div>
+                            <h1 class="text-2xl font-black text-indigo-600 tracking-tighter">MASTER</h1>
+                        </div>
+                    </a>
+
+                    <div class="w-full max-w-sm px-2">
+                        <div class="p-3 bg-white border border-indigo-50 rounded-xl shadow-sm">
+                            <div class="mb-2 text-center">
+                                <input type="text" readonly value="{{ ccpp.id_ccpp|default:'N/A' }}" 
+                                    class="input-invisible w-full bg-transparent text-sm font-bold text-slate-800 border-none p-0 focus:ring-0 cursor-default overflow-hidden text-ellipsis text-center">
+                            </div>
+                            
+                            <div class="mt-2 text-center">
+                                <input type="text" readonly value="{{ ccpp.nombre|default:'Sin nombre' }}" 
+                                    class="input-invisible w-full bg-transparent text-xs text-slate-600 border-none p-0 focus:ring-0 cursor-default overflow-hidden text-ellipsis italic text-center">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <nav class="flex-1 px-4 py-6 overflow-y-auto scrollIndependiente">
+
+                <!-- Acciones -->
+                <div class="mb-4">
+                    <p class="block text-xs font-bold text-slate-500 uppercase mb-1 ml-1">Acciones</p>
+                    <div class="space-y-1">
+                        <button type="submit" form="unidades-form" 
+                           class="w-full flex items-center px-4 py-2.5 text-slate-600 hover:bg-indigo-50 hover:text-indigo-700 rounded-xl transition-all group">
+                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"></path>
+                            </svg>
+                            <span class="text-sm font-medium">Guardar asignaciones</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <p class="block text-xs font-bold text-slate-500 uppercase mb-1 ml-1">Filtros</p>
+                    
+                    <div class="space-y-4 px-2">
+                        <!-- Filtro Unidad -->
+                        <div>
+                            <label class="text-[10px] font-semibold text-slate-400 uppercase ml-2">Unidad</label>
+                            <select id="filter-unidad" data-column="unidad" 
+                                class="w-full px-4 py-2 rounded-xl border border-slate-200 focus:ring-2 focus:ring-indigo-100 outline-none text-sm bg-white cursor-pointer">
+                                <option value="todos">Todas las unidades</option>
+                                {% for val in valores_unidad %}
+                                    <option value="{{ val }}">{{ val|truncatechars:25 }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <!-- Buscar en Capítulo -->
+                        <div>
+                            <label class="text-[10px] font-semibold text-slate-400 uppercase ml-2">Capítulo</label>
+                            <div class="relative">
+                                <input type="text" id="filter-capitulo" data-column="capitulo" 
+                                    placeholder="Buscar en capítulo..." 
+                                    class="w-full px-4 py-2 rounded-xl border border-slate-200 focus:ring-2 focus:ring-indigo-100 outline-none text-sm pl-10 bg-white">
+                                <div class="absolute inset-y-0 left-0 flex items-center pl-3">
+                                    <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                                    </svg>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Buscar en Descripción -->
+                        <div>
+                            <label class="text-[10px] font-semibold text-slate-400 uppercase ml-2">Descripción</label>
+                            <div class="relative">
+                                <input type="text" id="filter-descripcion" data-column="descripcion" 
+                                    placeholder="Buscar en descripción..." 
+                                    class="w-full px-4 py-2 rounded-xl border border-slate-200 focus:ring-2 focus:ring-indigo-100 outline-none text-sm pl-10 bg-white">
+                                <div class="absolute inset-y-0 left-0 flex items-center pl-3">
+                                    <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                                    </svg>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Filtro Doc -->
+                        <div>
+                            <label class="text-[10px] font-semibold text-slate-400 uppercase ml-2">Documento</label>
+                            <select id="filter-doc" data-column="doc" 
+                                class="w-full px-4 py-2 rounded-xl border border-slate-200 focus:ring-2 focus:ring-indigo-100 outline-none text-sm bg-white cursor-pointer">
+                                <option value="todos">Todos los documentos</option>
+                                {% for val in valores_doc %}
+                                    <option value="{{ val }}">{{ val }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <!-- Filtro Asignadas -->
+                        <div class="pt-2">
+                            <label class="flex items-center cursor-pointer">
+                                <input id="filter-assigned" type="checkbox" data-column="assigned" 
+                                       class="h-4 w-4 text-indigo-600 border-slate-300 rounded focus:ring-indigo-500 cursor-pointer">
+                                <span class="ml-3 text-sm text-slate-700 cursor-pointer">
+                                    Solo asignadas
+                                </span>
+                            </label>
+                        </div>
+
+                        <!-- Botón Limpiar filtros -->
+                        <a href="{% url 'gestionUnidades_ccpp' ccpp.id %}" class="w-full text-xs text-indigo-500 hover:text-indigo-700 font-medium py-2 transition-colors">
+                            Limpiar filtros
+                        </a>
+
+                    </div>
+                </div>
+            </nav>
+
+            <!-- User Profile -->
+            <div class="p-2 border-t border-indigo-50">
+                <div class="flex items-center p-1.5 space-x-2 bg-indigo-50/50 rounded-lg">
+                    <div class="w-7 h-7 flex-shrink-0 rounded-full bg-indigo-600 flex items-center justify-center text-white font-bold text-[10px]">
+                        {% if user.first_name and user.last_name %}
+                            {{ user.first_name|slice:":1" }}{{ user.last_name|slice:":1" }}
+                        {% else %}
+                            {{ user.username|slice:":2"|upper }}
+                        {% endif %}
+                    </div>
+                    
+                    <div class="flex-1 min-w-0 leading-tight">
+                        <input 
+                            type="text" 
+                            value="{{ user.username }}" 
+                            readonly 
+                            class="input-invisible w-full bg-transparent border-none p-0 text-xs font-bold text-slate-900 focus:ring-0 cursor-default truncate"
+                            title="{{ user.username }}"
+                        >
+                        
+                        <input 
+                            type="email" 
+                            value="{{ user.email }}" 
+                            readonly 
+                            class="input-invisible w-full bg-transparent border-none p-0 text-[10px] text-indigo-500 focus:ring-0 cursor-default truncate block -mt-1"
+                            title="{{ user.email }}"
+                        >
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Fondo oscuro para móviles -->
+        <div id="fondo-oscuro" onclick="alternarMenu()" class="fixed inset-0 bg-black bg-opacity-50 z-40 hidden lg:hidden"></div>
+
+        <!-- Main Content -->
+        <main class="flex-1 flex flex-col min-w-0 bg-slate-50">
+            <header class="h-20 bg-white border-b border-slate-100 flex items-center px-6 sm:px-10 justify-between flex-shrink-0">
+                <div class="flex items-center gap-5">
+                    <button type="button" onclick="alternarMenu()" 
+                            class="lg:hidden p-2.5 rounded-xl text-slate-500 hover:bg-slate-50 hover:text-indigo-600 transition-all border border-slate-100 shadow-sm">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 6h16M4 12h16M4 18h16"></path>
+                        </svg>
+                    </button>
+
+                    <div class="flex items-baseline gap-4">
+                        <h1 class="text-xl font-bold text-slate-800 tracking-tight leading-none">
+                            Asignar Unidades
+                        </h1>
+
+                        <nav class="hidden md:flex items-center text-sm font-medium">
+                            <span class="mx-2 text-slate-300">|</span>
+                            <div class="flex items-center gap-2">
+                                <a href="{% url 'panel_principal' %}" class="text-slate-400 hover:text-indigo-600 transition-colors">Inicio</a>
+
+                                <svg class="w-4 h-4 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                                </svg>
+
+                                <a href="{% url 'ccpp' %}" class="text-slate-400 hover:text-indigo-600 transition-colors">CCPP</a>
+
+                                <svg class="w-4 h-4 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                                </svg>
+
+                                <a href="{% url 'editar_ccpp' ccpp.id %}" class="text-slate-400 hover:text-indigo-600 transition-colors">Editar CCPP</a>
+
+                                <svg class="w-4 h-4 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                                </svg>
+
+                                <span class="text-indigo-600 font-semibold">Asignar Unidades</span>
+                            </div>
+                        </nav>
+                    </div>
+                </div>
+            </header>
+
+            <section class="flex-1 overflow-hidden p-4 sm:p-8 flex flex-col">
+                <div class="max-w-full h-full flex flex-col">
+                    {% if unidades %}
+                    <form id="unidades-form" method="POST" action="{% url 'gestionUnidades_ccpp' ccpp.id %}" class="h-full">
+                        {% csrf_token %}
+                        
+                        <div class="bg-white lg:rounded-2xl lg:shadow-sm lg:border lg:border-indigo-50 overflow-hidden flex flex-col h-full max-h-[calc(100vh-160px)]">
+                            <!-- Cabecera con select all -->
+                            <div class="px-6 py-4 border-b border-indigo-50 bg-gradient-to-r from-indigo-50/50 to-slate-50/50 flex items-center justify-between">
+                                <div class="flex items-center">
+                                    <label class="flex items-center cursor-pointer">
+                                        <input type="checkbox" id="select-all" 
+                                               class="h-5 w-5 text-indigo-600 border-slate-300 rounded focus:ring-indigo-500 cursor-pointer"
+                                               title="Seleccionar todas las unidades visibles">
+                                        <span class="ml-3 text-sm font-medium text-slate-700 cursor-pointer">
+                                            Seleccionar todas visibles
+                                        </span>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <!-- Contenido -->
+                            <div class="overflow-x-auto overflow-y-auto flex-1">
+                                <!-- Vista escritorio -->
+                                <table class="hidden lg:table w-full text-left border-separate border-spacing-0">
+                                    <thead>
+                                        <tr>
+                                            <th class="sticky top-0 z-20 bg-indigo-50 px-6 py-4 text-xs font-bold text-indigo-400 uppercase tracking-widest border-b border-indigo-100">
+                                                Estado
+                                            </th>
+                                            <th class="sticky top-0 z-20 bg-indigo-50 px-6 py-4 text-xs font-bold text-indigo-400 uppercase tracking-widest border-b border-indigo-100">
+                                                Unidad
+                                            </th>
+                                            <th class="sticky top-0 z-20 bg-indigo-50 px-6 py-4 text-xs font-bold text-indigo-400 uppercase tracking-widest border-b border-indigo-100">
+                                                Capítulo
+                                            </th>
+                                            <th class="sticky top-0 z-20 bg-indigo-50 px-6 py-4 text-xs font-bold text-indigo-400 uppercase tracking-widest border-b border-indigo-100">
+                                                Descripción
+                                            </th>
+                                            <th class="sticky top-0 z-20 bg-indigo-50 px-6 py-4 text-xs font-bold text-indigo-400 uppercase tracking-widest border-b border-indigo-100">
+                                                Documento
+                                            </th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="divide-y divide-slate-100" id="data-table-body">
+                                        {% for unidad in unidades %}
+                                        <tr class="hover:bg-indigo-50/50 transition-colors group cursor-pointer" 
+                                            onclick="toggleCheckbox('{{ unidad.id }}')"
+                                            data-unidad="{{ unidad.unidad }}" 
+                                            data-capitulo="{{ unidad.capitulo }}" 
+                                            data-descripcion="{{ unidad.descripcion }}" 
+                                            data-observacion="{{ unidad.observacion }}" 
+                                            data-doc="{{ unidad.doc }}"
+                                            data-assigned="{% if unidad.id in assigned_unit_ids %}true{% else %}false{% endif %}">
+                                            
+                                            <!-- Estado / Checkbox -->
+                                            <td class="px-6 py-4 border-b border-slate-50" onclick="event.stopPropagation();">
+                                                <div class="flex items-center">
+                                                    <input type="checkbox" id="checkbox-{{ unidad.id }}" 
+                                                           name="selected_units" 
+                                                           value="{{ unidad.id }}" 
+                                                           {% if unidad.id in assigned_unit_ids %}checked{% endif %}
+                                                           class="unidad-checkbox h-5 w-5 text-indigo-600 border-slate-300 rounded focus:ring-indigo-500 cursor-pointer">
+                                                </div>
+                                            </td>
+                                            
+                                            <!-- Unidad -->
+                                            <td class="px-6 py-4 border-b border-slate-50">
+                                                <div class="flex items-center gap-3">
+                                                    <div>
+                                                        <div class="text-sm text-slate-900">
+                                                            <input 
+                                                                type="text" 
+                                                                value="{{ unidad.unidad }}" 
+                                                                readonly 
+                                                                class="input-invisible w-full"
+                                                                title="{{ unidad.unidad }}"
+                                                            >
+                                                        </div>
+                                                        {% if unidad.observacion %}
+                                                        <div class="text-xs text-slate-500 truncate max-w-[200px]" title="{{ unidad.observacion }}">
+                                                            {{ unidad.observacion|truncatechars:50 }}
+                                                        </div>
+                                                        {% endif %}
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            
+                                            <!-- Capítulo -->
+                                            <td class="px-6 py-4 border-b border-slate-50">
+                                                <div class="text-sm text-slate-700 truncate max-w-[180px]" title="{{ unidad.capitulo }}">
+                                                    {{ unidad.capitulo }}
+                                                </div>
+                                            </td>
+                                            
+                                            <!-- Descripción -->
+                                            <td class="px-6 py-4 border-b border-slate-50">
+                                                <div class="text-sm text-slate-700 truncate max-w-[300px]" title="{{ unidad.descripcion }}">
+                                                    {{ unidad.descripcion }}
+                                                </div>
+                                            </td>
+                                            
+                                            <!-- Documento -->
+                                            <td class="px-6 py-4 border-b border-slate-50">
+                                                <div class="flex justify-between items-center">
+                                                    <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-gradient-to-r from-indigo-100 to-indigo-50 text-indigo-800 border border-indigo-100">
+                                                        {{ unidad.doc }}
+                                                    </span>
+                                                    <svg class="w-4 h-4 text-indigo-400 opacity-0 group-hover:opacity-100 transition-opacity" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                                                    </svg>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+
+                                <!-- Vista móvil/tablet -->
+                                <div class="lg:hidden grid grid-cols-1 gap-4 p-4" id="mobile-cards-container">
+                                    {% for unidad in unidades %}
+                                    <div class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm active:scale-95 transition-transform cursor-pointer" 
+                                        onclick="toggleCheckbox('{{ unidad.id }}')"
+                                        data-unidad="{{ unidad.unidad }}" 
+                                        data-capitulo="{{ unidad.capitulo }}" 
+                                        data-descripcion="{{ unidad.descripcion }}" 
+                                        data-observacion="{{ unidad.observacion }}" 
+                                        data-doc="{{ unidad.doc }}"
+                                        data-assigned="{% if unidad.id in assigned_unit_ids %}true{% else %}false{% endif %}">
+                                        
+                                        <!-- Header con checkbox y estado -->
+                                        <div class="flex items-start justify-between mb-4">
+                                            <div class="flex-1 min-w-0">
+                                                <div class="flex items-center mb-2">
+                                                    <input type="checkbox" id="mobile-checkbox-{{ unidad.id }}" 
+                                                           name="selected_units" 
+                                                           value="{{ unidad.id }}" 
+                                                           {% if unidad.id in assigned_unit_ids %}checked{% endif %}
+                                                           class="unidad-checkbox h-5 w-5 text-indigo-600 border-slate-300 rounded focus:ring-indigo-500 cursor-pointer mr-3"
+                                                           onclick="event.stopPropagation();">
+                                                    
+                                                    <div>
+                                                        <h3 class="text-sm font-bold text-slate-900 truncate">
+                                                            {{ unidad.unidad }}
+                                                        </h3>
+                                                        <div class="flex items-center mt-1">
+                                                            {% if unidad.id in assigned_unit_ids %}
+                                                            <div class="flex items-center">
+                                                                <div class="w-2 h-2 rounded-full bg-emerald-500 mr-2"></div>
+                                                                <span class="text-xs text-emerald-700">Asignada</span>
+                                                            </div>
+                                                            {% else %}
+                                                            <div class="flex items-center">
+                                                                <div class="w-2 h-2 rounded-full bg-slate-400 mr-2"></div>
+                                                                <span class="text-xs text-slate-600">Sin asignar</span>
+                                                            </div>
+                                                            {% endif %}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="flex items-center text-xs text-slate-500">
+                                                    <svg class="w-4 h-4 text-indigo-400 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                                                    </svg>
+                                                    <span>Documento: {{ unidad.doc }}</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- Capítulo -->
+                                        <div class="mb-3">
+                                            <p class="text-slate-500 text-xs mb-1 font-medium">Capítulo</p>
+                                            <p class="text-slate-700 text-sm truncate">
+                                                {{ unidad.capitulo }}
+                                            </p>
+                                        </div>
+                                        
+                                        <!-- Descripción -->
+                                        <div class="mb-3">
+                                            <p class="text-slate-500 text-xs mb-1 font-medium">Descripción</p>
+                                            <p class="text-slate-700 text-sm truncate">
+                                                {{ unidad.descripcion|truncatechars:80 }}
+                                            </p>
+                                        </div>
+                                        
+                                        <!-- Observación -->
+                                        {% if unidad.observacion %}
+                                        <div class="mt-2 pt-2 border-t border-slate-100">
+                                            <p class="text-slate-500 text-xs mb-1 font-medium">Observación</p>
+                                            <p class="text-slate-600 text-xs truncate">
+                                                {{ unidad.observacion|truncatechars:60 }}
+                                            </p>
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+
+                            <!-- Pie de tabla -->
+                            <div class="px-6 py-4 border-t border-indigo-50 bg-slate-50/50 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
+                                <div class="text-xs text-slate-600">
+                                    <span class="font-medium text-slate-700">Resumen:</span>
+                                    <span id="selected-count" class="ml-2 font-medium text-indigo-600">{{ assigned_unit_ids|length }} asignadas</span>
+                                    <span class="mx-2">•</span>
+                                    <span id="total-visible-count" class="font-medium">{{ unidades|length }}</span> unidades visibles
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                    {% else %}
+                    <!-- Estado vacío -->
+                    <div class="flex-1 flex items-center justify-center">
+                        <div class="text-center py-12 bg-white rounded-2xl border border-slate-100 shadow-sm px-8 max-w-md">
+                            <div class="inline-flex items-center justify-center w-14 h-14 rounded-full bg-indigo-50 mb-4">
+                                <svg class="w-7 h-7 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
+                                </svg>
+                            </div>
+                            <h3 class="text-lg font-semibold text-slate-800 mb-2">Sin unidades disponibles</h3>
+                            <p class="text-slate-600 mb-6 text-sm">
+                                No hay unidades en el sistema para asignar a este CCPP.
+                                Primero debes crear unidades en el sistema.
+                            </p>
+                            <div class="flex flex-col sm:flex-row gap-3 justify-center">
+                                <a href="{% url 'nueva_unidad' %}" 
+                                   class="inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-lg text-white bg-indigo-600 hover:bg-indigo-700 transition-colors shadow-sm">
+                                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                                    </svg>
+                                    Crear nueva Unidad
+                                </a>
+                                <a href="{% url 'editar_ccpp' ccpp.id %}" 
+                                   class="inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-lg text-slate-700 bg-white border border-slate-300 hover:bg-slate-50 transition-colors shadow-sm">
+                                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                                    </svg>
+                                    Volver al CCPP
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script>
+    /**
+     * FUNCIONES DE FILTRADO Y GESTIÓN
+     */
+    
+    function alternarMenu() {
+        const menuLateral = document.getElementById('sidebar-principal');
+        const fondoOscuro = document.getElementById('fondo-oscuro');
+        
+        if (menuLateral.classList.contains('-translate-x-full')) {
+            menuLateral.classList.remove('-translate-x-full');
+            menuLateral.classList.add('translate-x-0');
+            fondoOscuro.classList.remove('hidden');
+        } else {
+            menuLateral.classList.remove('translate-x-0');
+            menuLateral.classList.add('-translate-x-full');
+            fondoOscuro.classList.add('hidden');
+        }
+    }
+    
+    function limpiarFiltros() {
+        document.querySelectorAll('.control-input').forEach(control => {
+            if (control.type === 'checkbox') {
+                control.checked = false;
+            } else if (control.type === 'select-one') {
+                control.value = 'todos';
+            } else {
+                control.value = '';
+            }
+        });
+        
+        aplicarFiltros();
+    }
+    
+    // Variables globales para la gestión de filtros
+    let elementos = [];
+    let isMobile = window.innerWidth < 1024;
+    const selectAllCheckbox = document.getElementById('select-all');
+    
+    function initializeUnidadesAsignacion() {
+        try {
+            // Obtener elementos de la tabla
+            isMobile = window.innerWidth < 1024;
+            
+            if (isMobile) {
+                const mobileContainer = document.getElementById('mobile-cards-container');
+                elementos = mobileContainer ? Array.from(mobileContainer.querySelectorAll('div[data-unidad]')) : [];
+            } else {
+                const cuerpoTabla = document.getElementById('data-table-body');
+                elementos = cuerpoTabla ? Array.from(cuerpoTabla.querySelectorAll('tr')) : [];
+            }
+            
+            if (elementos.length === 0) return;
+            
+            /**
+             * Actualizar contadores
+             */
+            function actualizarContadores() {
+                const checkboxes = document.querySelectorAll('.unidad-checkbox');
+                const asignadas = Array.from(checkboxes).filter(cb => cb.checked).length;
+                const elementosVisibles = elementos.filter(el => el.style.display !== 'none').length;
+                
+                const assignedCount = document.getElementById('assigned-count');
+                const selectedCount = document.getElementById('selected-count');
+                const filteredCount = document.getElementById('filtered-count');
+                const totalVisibleCount = document.getElementById('total-visible-count');
+                
+                if (assignedCount) {
+                    assignedCount.textContent = asignadas;
+                }
+                
+                if (selectedCount) {
+                    selectedCount.textContent = `${asignadas} asignada${asignadas !== 1 ? 's' : ''}`;
+                }
+                
+                if (filteredCount) {
+                    filteredCount.textContent = elementosVisibles;
+                }
+                
+                if (totalVisibleCount) {
+                    totalVisibleCount.textContent = elementosVisibles;
+                }
+            }
+            
+            /**
+             * Actualizar checkbox "Seleccionar todo"
+             */
+            function actualizarSelectAll() {
+                if (!selectAllCheckbox) return;
+                
+                const checkboxesVisibles = elementos
+                    .filter(el => el.style.display !== 'none')
+                    .map(el => el.querySelector('.unidad-checkbox'))
+                    .filter(cb => cb);
+                
+                if (checkboxesVisibles.length === 0) {
+                    selectAllCheckbox.checked = false;
+                    selectAllCheckbox.indeterminate = false;
+                    return;
+                }
+                
+                const checkboxesMarcados = checkboxesVisibles.filter(cb => cb.checked);
+                
+                if (checkboxesMarcados.length === 0) {
+                    selectAllCheckbox.checked = false;
+                    selectAllCheckbox.indeterminate = false;
+                } else if (checkboxesMarcados.length === checkboxesVisibles.length) {
+                    selectAllCheckbox.checked = true;
+                    selectAllCheckbox.indeterminate = false;
+                } else {
+                    selectAllCheckbox.checked = false;
+                    selectAllCheckbox.indeterminate = true;
+                }
+            }
+            
+            /**
+             * Aplicar filtros
+             */
+            function aplicarFiltros() {
+                const controlesFiltro = document.querySelectorAll('[data-column]');
+                const filtros = {};
+                let elementosFiltrados = 0;
+                
+                // Recopilar filtros activos
+                controlesFiltro.forEach(control => {
+                    const columna = control.getAttribute('data-column');
+                    let valor = control.value;
+                    
+                    if (columna && valor && valor !== 'todos') {
+                        if (control.type === 'checkbox') {
+                            filtros[columna] = control.checked;
+                        } else {
+                            filtros[columna] = valor.trim().toLowerCase();
+                        }
+                    }
+                });
+                
+                // Filtrar elementos
+                elementos.forEach(elemento => {
+                    let coincide = true;
+                    
+                    for (const columna in filtros) {
+                        const valorFiltro = filtros[columna];
+                        
+                        if (columna === 'assigned') {
+                            // Filtro especial para asignadas
+                            if (valorFiltro) {
+                                const esAsignada = elemento.getAttribute('data-assigned') === 'true';
+                                if (!esAsignada) {
+                                    coincide = false;
+                                    break;
+                                }
+                            }
+                        } else {
+                            let valorElemento = elemento.getAttribute(`data-${columna}`) || '';
+                            valorElemento = valorElemento.toLowerCase();
+                            
+                            if (columna === 'unidad' || columna === 'doc') {
+                                // Coincidencia exacta para selects
+                                if (valorElemento !== valorFiltro) {
+                                    coincide = false;
+                                    break;
+                                }
+                            } else {
+                                // Búsqueda parcial para inputs de texto
+                                if (!valorElemento.includes(valorFiltro)) {
+                                    coincide = false;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                    
+                    // Aplicar visualización
+                    const displayStyle = isMobile ? 'block' : '';
+                    elemento.style.display = coincide ? displayStyle : 'none';
+                    if (coincide) elementosFiltrados++;
+                });
+                
+                // Actualizar contadores
+                actualizarContadores();
+                actualizarSelectAll();
+                
+                // Manejar estado sin resultados
+                if (elementosFiltrados === 0 && !isMobile) {
+                    let filaNoResultados = document.getElementById('no-results-row');
+                    const cuerpoTabla = document.getElementById('data-table-body');
+                    
+                    if (cuerpoTabla && !filaNoResultados) {
+                        filaNoResultados = document.createElement('tr');
+                        filaNoResultados.id = 'no-results-row';
+                        filaNoResultados.innerHTML = `
+                            <td colspan="5" class="px-6 py-12 text-center text-slate-400">
+                                <div class="flex flex-col items-center">
+                                    <div class="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center mb-3">
+                                        <svg class="w-6 h-6 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                                        </svg>
+                                    </div>
+                                    <p class="text-sm font-medium text-slate-700 mb-1">No se encontraron resultados</p>
+                                    <p class="text-xs text-slate-500">Intenta con otros filtros</p>
+                                </div>
+                            </td>`;
+                        cuerpoTabla.appendChild(filaNoResultados);
+                    }
+                } else {
+                    const filaNoResultados = document.getElementById('no-results-row');
+                    if (filaNoResultados) {
+                        filaNoResultados.style.display = 'none';
+                    }
+                }
+            }
+            
+            /**
+             * Manejar "Seleccionar todo"
+             */
+            function manejarSelectAll() {
+                if (!selectAllCheckbox) return;
+                
+                const estaMarcado = selectAllCheckbox.checked;
+                
+                elementos.forEach(elemento => {
+                    if (elemento.style.display !== 'none') {
+                        const checkbox = elemento.querySelector('.unidad-checkbox');
+                        if (checkbox) {
+                            checkbox.checked = estaMarcado;
+                        }
+                    }
+                });
+                
+                actualizarContadores();
+            }
+            
+            /**
+             * Toggle checkbox por ID
+             */
+            window.toggleCheckbox = function(id) {
+                const checkbox = document.getElementById(`checkbox-${id}`) || document.getElementById(`mobile-checkbox-${id}`);
+                if (checkbox) {
+                    checkbox.checked = !checkbox.checked;
+                    actualizarContadores();
+                    actualizarSelectAll();
+                    
+                    // Efecto visual
+                    if (isMobile) {
+                        const elemento = checkbox.closest('div[data-unidad]');
+                        if (elemento) {
+                            elemento.classList.add('bg-indigo-50');
+                            setTimeout(() => {
+                                elemento.classList.remove('bg-indigo-50');
+                            }, 300);
+                        }
+                    }
+                }
+            };
+            
+            /**
+             * Configurar eventos
+             */
+            function setupEventListeners() {
+                // Filtros
+                document.querySelectorAll('[data-column]').forEach(control => {
+                    control.addEventListener('input', aplicarFiltros);
+                    control.addEventListener('change', aplicarFiltros);
+                });
+                
+                // Select all
+                if (selectAllCheckbox) {
+                    selectAllCheckbox.addEventListener('change', manejarSelectAll);
+                }
+                
+                // Checkboxes individuales
+                document.addEventListener('change', (e) => {
+                    if (e.target.classList.contains('unidad-checkbox')) {
+                        actualizarContadores();
+                        actualizarSelectAll();
+                    }
+                });
+                
+                // Redimensionamiento
+                window.addEventListener('resize', handleResize);
+                
+                // Prevenir envío doble del formulario
+                const form = document.getElementById('unidades-form');
+                if (form) {
+                    form.addEventListener('submit', function(e) {
+                        const submitBtn = this.querySelector('button[type="submit"]');
+                        if (submitBtn) {
+                            submitBtn.disabled = true;
+                            submitBtn.innerHTML = '<svg class="w-4 h-4 mr-2 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>Guardando...';
+                        }
+                    });
+                }
+            }
+            
+            /**
+             * Manejar cambio de tamaño de ventana
+             */
+            function handleResize() {
+                const newIsMobile = window.innerWidth < 1024;
+                if (newIsMobile !== isMobile) {
+                    isMobile = newIsMobile;
+                    
+                    // Re-obtener elementos según la vista actual
+                    if (isMobile) {
+                        const mobileContainer = document.getElementById('mobile-cards-container');
+                        elementos = mobileContainer ? Array.from(mobileContainer.querySelectorAll('div[data-unidad]')) : [];
+                    } else {
+                        const cuerpoTabla = document.getElementById('data-table-body');
+                        elementos = cuerpoTabla ? Array.from(cuerpoTabla.querySelectorAll('tr')) : [];
+                    }
+                    
+                    aplicarFiltros();
+                }
+            }
+            
+            // Inicializar
+            setupEventListeners();
+            aplicarFiltros();
+            actualizarContadores();
+            
+        } catch (error) {
+            console.error("Error al inicializar la gestión de unidades:", error);
+        }
+    }
+    
+    // Inicializar al cargar la página
+    document.addEventListener('DOMContentLoaded', initializeUnidadesAsignacion);
+    
+    // También inicializar si la página ya está cargada
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initializeUnidadesAsignacion);
+    } else {
+        initializeUnidadesAsignacion();
+    }
+    </script>
+</body>
+</html>

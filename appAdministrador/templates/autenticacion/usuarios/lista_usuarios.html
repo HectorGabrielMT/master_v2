@@ -1,0 +1,388 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MASTER - Gestión de Usuarios</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'css/estiloGlobal.css' %}">
+    <link rel="icon" type="image/png" href="{% static 'img/icono.png' %}">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Poppins', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-slate-50 font-sans antialiased text-slate-900">
+    {% include 'base/mensajes.html' %}
+    <div class="flex h-screen overflow-hidden">
+        
+        <!-- Sidebar principal -->
+        <aside id="sidebar-principal" class="fixed inset-y-0 left-0 w-64 bg-white shadow-xl flex flex-col z-50 border-r border-indigo-50 h-full flex-shrink-0 transition-transform duration-300 transform -translate-x-full lg:relative lg:translate-x-0">
+            <div class="p-4 border-b border-indigo-50 relative">
+                
+                <div class="absolute left-4 top-5">
+                    <a href="{% url 'panel_principal' %}" class="text-slate-400 hover:text-indigo-600 transition-colors flex items-center">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                        </svg>
+                    </a>
+                </div>
+
+                <div class="flex flex-col items-center">
+                    <a href="{% url 'panel_principal' %}" class="space-x-3">
+                        <div class="flex items-center gap-3 mb-4">
+                            <div class="flex-shrink-0">
+                                <img src="{% static 'img/logo.png' %}" 
+                                    alt="Logo MASTER" 
+                                    class="w-10 h-10 object-contain drop-shadow-sm transition-transform duration-300 hover:scale-110">
+                            </div>
+                            <h1 class="text-xl font-black text-indigo-600 tracking-tighter">MASTER</h1>
+                        </div>
+                    </a>
+                    
+                </div>
+                
+                <div class="absolute right-4 top-5 lg:hidden">
+                    <button onclick="alternarMenu()" class="p-2 text-slate-400 hover:text-red-500">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <nav class="flex-1 px-3 py-4 space-y-6 overflow-y-auto scrollIndependiente">
+                <div>
+                    <p class="block text-xs font-bold text-slate-500 uppercase mb-1 ml-1">Acciones</p>
+                    <div class="space-y-1">
+                        <a href="{% url 'crear_usuario' %}" class="w-full flex items-center px-3 py-2.5 text-slate-600 hover:bg-indigo-50 hover:text-indigo-700 rounded-lg transition-all group">
+                            <svg class="w-4 h-4 mr-2 text-slate-400 group-hover:text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                            </svg>
+                            <span class="text-xs font-medium">Nuevo Usuario</span>
+                        </a>
+                    </div>
+                </div>
+
+                <div>
+                    <p class="block text-xs font-bold text-slate-500 uppercase mb-1 ml-1">Resumen</p>
+                    <div class="px-1 space-y-3">
+                        <div class="p-2.5 bg-slate-50 rounded-lg border border-slate-100">
+                            <div class="grid grid-cols-2 gap-2.5">
+                                <div class="text-center">
+                                    <span class="text-xl font-bold text-indigo-600">{{ total_usuarios }}</span>
+                                    <p class="text-[10px] text-slate-400 mt-0.5">Total Usuarios</p>
+                                </div>
+                                <div class="text-center">
+                                    <span class="text-xl font-bold text-emerald-600">{{ usuarios_activos }}</span>
+                                    <p class="text-[10px] text-slate-400 mt-0.5">Activos</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </nav>
+
+            <div class="p-2 border-t border-indigo-50">
+                <div class="flex items-center p-1.5 space-x-2 bg-indigo-50/50 rounded">
+                    <div class="w-6 h-6 flex-shrink-0 rounded-full bg-indigo-600 flex items-center justify-center text-white font-bold text-[9px]">
+                        {% if user.first_name and user.last_name %}
+                            {{ user.first_name|slice:":1" }}{{ user.last_name|slice:":1" }}
+                        {% else %}
+                            {{ user.username|slice:":2"|upper }}
+                        {% endif %}
+                    </div>
+                    
+                    <div class="flex-1 min-w-0 leading-tight">
+                        <input 
+                            type="text" 
+                            value="{{ user.username }}" 
+                            readonly 
+                            class="input-invisible w-full bg-transparent border-none p-0 text-xs font-bold text-slate-900 focus:ring-0 cursor-default truncate"
+                            title="{{ user.username }}"
+                        >
+                        
+                        <input 
+                            type="email" 
+                            value="{{ user.email }}" 
+                            readonly 
+                            class="input-invisible w-full bg-transparent border-none p-0 text-[10px] text-indigo-500 focus:ring-0 cursor-default truncate block -mt-1"
+                            title="{{ user.email }}"
+                        >
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Contenido principal -->
+        <main class="flex-1 flex flex-col min-w-0 bg-slate-50">
+            <header class="h-16 bg-white border-b border-slate-100 flex items-center px-4 sm:px-6 justify-between flex-shrink-0">
+                <div class="flex items-center gap-4">
+                    <button type="button" onclick="alternarMenu()" 
+                            class="lg:hidden p-2 rounded-lg text-slate-500 hover:bg-slate-50 hover:text-indigo-600 transition-all border border-slate-100 shadow-sm">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 6h16M4 12h16M4 18h16"></path>
+                        </svg>
+                    </button>
+
+                    <div class="flex items-baseline gap-3">
+                        <h1 class="text-lg font-bold text-slate-800 tracking-tight leading-none">
+                            Gestión de Usuarios
+                        </h1>
+
+                        <nav class="hidden md:flex items-center text-xs font-medium">
+                            <span class="mx-1.5 text-slate-300">|</span>
+                            <div class="flex items-center gap-1.5">
+                                <a href="{% url 'panel_principal' %}" class="text-slate-400 hover:text-indigo-600 transition-colors">Inicio</a>
+
+                                <svg class="w-3.5 h-3.5 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                                </svg>
+
+                                <span class="text-indigo-600 font-semibold">Usuarios</span>
+                            </div>
+                        </nav>
+                    </div>
+                </div>
+            </header>
+
+            <section class="flex-1 overflow-y-auto px-4 pt-2 pb-4 sm:px-6">
+                <div class="max-w-6xl mx-auto mt-2">
+                    <!-- Filtros -->
+                    <div class="mb-4">
+                        <div class="bg-white rounded-lg shadow-sm border border-slate-100 p-3">
+                            <div class="flex flex-col md:flex-row md:items-center justify-between gap-3">
+                                <div class="flex-1">
+                                    <div class="relative">
+                                        <input type="text" id="buscar-usuario" placeholder="Buscar usuario..." 
+                                            class="w-full pl-9 pr-3 py-1.5 rounded-lg border border-slate-200 focus:ring-1 focus:ring-indigo-100 outline-none text-sm">
+                                        <svg class="w-3.5 h-3.5 absolute left-2.5 top-2 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                                        </svg>
+                                    </div>
+                                </div>
+                                <div class="flex gap-1.5">
+                                    <select id="filtro-estado" class="px-3 py-1.5 rounded-lg border border-slate-200 focus:ring-1 focus:ring-indigo-100 outline-none text-sm">
+                                        <option value="">Todos los estados</option>
+                                        <option value="activo">Activo</option>
+                                        <option value="inactivo">Inactivo</option>
+                                    </select>
+                                    <select id="filtro-rol" class="px-3 py-1.5 rounded-lg border border-slate-200 focus:ring-1 focus:ring-indigo-100 outline-none text-sm">
+                                        <option value="">Todos los roles</option>
+                                        <option value="admin">Administrador</option>
+                                        <option value="supervisor">Supervisor</option>
+                                        <option value="inspector">Inspector</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tabla de usuarios -->
+                    <div class="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full divide-y divide-slate-100 text-xs">
+                                <thead class="bg-slate-50">
+                                    <tr>
+                                        <th scope="col" class="px-3 py-2 text-left font-bold text-gray-500 uppercase tracking-wider">Usuario</th>
+                                        <th scope="col" class="px-3 py-2 text-left font-bold text-gray-500 uppercase tracking-wider">Nombre</th>
+                                        <th scope="col" class="px-3 py-2 text-left font-bold text-gray-500 uppercase tracking-wider">Correo</th>
+                                        <th scope="col" class="px-3 py-2 text-left font-bold text-gray-500 uppercase tracking-wider">Rol</th>
+                                        <th scope="col" class="px-3 py-2 text-left font-bold text-gray-500 uppercase tracking-wider">Estado</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="bg-white divide-y divide-slate-100">
+                                    {% for usuario in usuarios %}
+                                    <tr onclick="window.location='{% url 'editar_usuario' usuario.id %}';" 
+                                        class="hover:bg-indigo-50/50 cursor-pointer transition-colors group">
+                                        <td class="px-3 py-2 whitespace-nowrap">
+                                            <div class="flex items-center">
+                                                <div class="w-6 h-6 flex-shrink-0 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 font-bold text-[10px] mr-2 group-hover:bg-indigo-600 group-hover:text-white transition-colors">
+                                                    {{ usuario.username|slice:":2"|upper }}
+                                                </div>
+                                                <span class="text-xs font-medium text-slate-800">{{ usuario.username }}</span>
+                                            </div>
+                                        </td>
+                                        <td class="px-3 py-2 whitespace-nowrap">
+                                            <span class="text-xs text-slate-600">
+                                                {% if usuario.first_name or usuario.last_name %}
+                                                    {{ usuario.first_name }} {{ usuario.last_name }}
+                                                {% else %}
+                                                    <span class="text-slate-400">No especificado</span>
+                                                {% endif %}
+                                            </span>
+                                        </td>
+                                        <td class="px-3 py-2 whitespace-nowrap">
+                                            <span class="text-xs text-slate-600">{{ usuario.email }}</span>
+                                        </td>
+                                        <td class="px-3 py-2 whitespace-nowrap">
+                                            {% if usuario.is_superuser %}
+                                                <span class="px-1.5 py-0.5 text-[10px] font-bold bg-red-100 text-red-700 rounded-full">Administrador</span>
+                                            {% elif usuario.is_staff %}
+                                                <span class="px-1.5 py-0.5 text-[10px] font-bold bg-amber-100 text-amber-700 rounded-full">Supervisor</span>
+                                            {% else %}
+                                                <span class="px-1.5 py-0.5 text-[10px] font-bold bg-blue-100 text-blue-700 rounded-full">Observador</span>
+                                            {% endif %}
+                                        </td>
+                                        <td class="px-3 py-2 whitespace-nowrap">
+                                            {% if usuario.is_active %}
+                                                <span class="px-1.5 py-0.5 text-[10px] font-bold bg-emerald-100 text-emerald-700 rounded-full">Activo</span>
+                                            {% else %}
+                                                <span class="px-1.5 py-0.5 text-[10px] font-bold bg-slate-100 text-slate-700 rounded-full">Inactivo</span>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    {% empty %}
+                                    <tr>
+                                        <td colspan="5" class="px-3 py-8 text-center">
+                                            <svg class="w-8 h-8 text-slate-300 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5 0c-.667.916-1.5 1.5-2.5 1.5s-1.833-.584-2.5-1.5m-13.5 0c.667.916 1.5 1.5 2.5 1.5s1.833-.584 2.5-1.5"></path>
+                                            </svg>
+                                            <p class="text-xs text-slate-400 font-medium">No hay usuarios registrados</p>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Paginación -->
+                    {% if usuarios.paginator.num_pages > 1 %}
+                    <div class="mt-4 flex items-center justify-between">
+                        <div class="text-xs text-slate-500">
+                            Mostrando {{ usuarios.start_index }} - {{ usuarios.end_index }} de {{ usuarios.paginator.count }} usuarios
+                        </div>
+                        <div class="flex gap-1">
+                            {% if usuarios.has_previous %}
+                            <a href="?page={{ usuarios.previous_page_number }}" class="px-2 py-1.5 rounded border border-slate-200 text-slate-600 hover:bg-slate-50 text-xs">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                                </svg>
+                            </a>
+                            {% endif %}
+                            
+                            {% for num in usuarios.paginator.page_range %}
+                                {% if usuarios.number == num %}
+                                    <span class="px-2 py-1.5 rounded bg-indigo-600 text-white text-xs">{{ num }}</span>
+                                {% else %}
+                                    <a href="?page={{ num }}" class="px-2 py-1.5 rounded border border-slate-200 text-slate-600 hover:bg-slate-50 text-xs">{{ num }}</a>
+                                {% endif %}
+                            {% endfor %}
+                            
+                            {% if usuarios.has_next %}
+                            <a href="?page={{ usuarios.next_page_number }}" class="px-2 py-1.5 rounded border border-slate-200 text-slate-600 hover:bg-slate-50 text-xs">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                                </svg>
+                            </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Modal de confirmación para eliminar -->
+    <div id="modal-eliminar" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[60] hidden">
+        <div class="bg-white rounded-lg shadow-xl p-4 max-w-md w-full mx-4">
+            <div class="text-center">
+                <div class="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                    <svg class="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.692-.833-2.464 0L4.732 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+                    </svg>
+                </div>
+                <h3 class="text-base font-bold text-slate-800 mb-2">¿Eliminar usuario?</h3>
+                <p class="text-xs text-slate-600 mb-4">El usuario "<span id="usuario-nombre"></span>" será eliminado permanentemente. Esta acción no se puede deshacer.</p>
+                <div class="flex gap-2">
+                    <button onclick="cerrarModal()" class="flex-1 px-3 py-1.5 border border-slate-200 text-slate-600 rounded-lg hover:bg-slate-50 transition-colors text-xs">Cancelar</button>
+                    <form id="form-eliminar" method="POST" class="flex-1">
+                        {% csrf_token %}
+                        <button type="submit" class="w-full px-3 py-1.5 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-xs">Eliminar</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function alternarMenu() {
+            const menuLateral = document.getElementById('sidebar-principal');
+            if (menuLateral.classList.contains('-translate-x-full')) {
+                menuLateral.classList.remove('-translate-x-full');
+                menuLateral.classList.add('translate-x-0');
+            } else {
+                menuLateral.classList.remove('translate-x-0');
+                menuLateral.classList.add('-translate-x-full');
+            }
+        }
+
+        let usuarioAEliminar = null;
+
+        function confirmarEliminacion(id, nombre) {
+            usuarioAEliminar = id;
+            document.getElementById('usuario-nombre').textContent = nombre;
+            document.getElementById('form-eliminar').action = `/usuarios/eliminar/${id}/`;
+            document.getElementById('modal-eliminar').classList.remove('hidden');
+        }
+
+        function cerrarModal() {
+            document.getElementById('modal-eliminar').classList.add('hidden');
+            usuarioAEliminar = null;
+        }
+
+        // Filtrado de búsqueda
+        document.getElementById('buscar-usuario').addEventListener('input', function(e) {
+            const searchTerm = e.target.value.toLowerCase();
+            const rows = document.querySelectorAll('tbody tr');
+            
+            rows.forEach(row => {
+                const text = row.textContent.toLowerCase();
+                row.style.display = text.includes(searchTerm) ? '' : 'none';
+            });
+        });
+
+        // Filtro por estado
+        document.getElementById('filtro-estado').addEventListener('change', function(e) {
+            const estado = e.target.value;
+            const rows = document.querySelectorAll('tbody tr');
+            
+            rows.forEach(row => {
+                const estadoCell = row.querySelector('td:nth-child(5) span');
+                if (!estado || (estado === 'activo' && estadoCell.textContent.includes('Activo')) || 
+                    (estado === 'inactivo' && estadoCell.textContent.includes('Inactivo'))) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        });
+
+        // Filtro por rol
+        document.getElementById('filtro-rol').addEventListener('change', function(e) {
+            const rol = e.target.value;
+            const rows = document.querySelectorAll('tbody tr');
+            
+            rows.forEach(row => {
+                const rolCell = row.querySelector('td:nth-child(4) span');
+                if (!rol || rolCell.textContent.toLowerCase().includes(rol)) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        });
+    </script>
+</body>
+</html>

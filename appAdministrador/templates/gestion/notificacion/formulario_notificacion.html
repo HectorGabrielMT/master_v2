@@ -1,0 +1,824 @@
+{% load static%}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MASTER - Gestión de Notificacion</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'css/estiloGlobal.css' %}">
+    <link rel="icon" type="image/png" href="{% static 'img/icono.png' %}">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Poppins', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-slate-50 font-sans antialiased text-slate-900">
+    {% include 'base/mensajes.html' %}
+    <div class="flex h-screen overflow-hidden">
+        
+        <aside id="sidebar-principal" class="fixed inset-y-0 left-0 w-64 bg-white shadow-xl flex flex-col z-50 border-r border-indigo-50 h-full flex-shrink-0 transition-transform duration-300 transform -translate-x-full lg:relative lg:translate-x-0">
+            <div class="p-4 border-b border-indigo-50 flex justify-center items-center relative">
+
+                <div class="absolute left-4 top-6">
+                    <a href="{% url 'vista_panel_notificacion' cronograma.ccpp.id %}" class="text-slate-400 hover:text-indigo-600 transition-colors flex items-center">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                        </svg>
+                    </a>
+                </div>
+
+                <div class="flex flex-col items-center">
+                    <a href="{% url 'panel_principal' %}" class="space-x-3">
+                        <div class="flex items-center gap-3 mb-4">
+                            <div class="flex-shrink-0">
+                                <img src="{% static 'img/logo.png' %}" 
+                                    alt="Logo MASTER" 
+                                    class="w-10 h-10 object-contain drop-shadow-sm transition-transform duration-300 hover:scale-110">
+                            </div>
+                            <h1 class="text-xl font-black text-indigo-600 tracking-tighter">MASTER</h1>
+                        </div>
+                    </a>
+                    
+
+                    <div class="w-full max-w-sm px-2">
+                        <div class="p-3 bg-white border border-indigo-50 rounded-lg shadow-sm">
+                            <div class="mb-1 text-center">
+                                <input type="text" readonly value="{{ cronograma.ccpp.id_ccpp|default:'N/A' }}" 
+                                    class="input-invisible w-full bg-transparent text-sm font-bold text-slate-800 border-none p-0 focus:ring-0 cursor-default overflow-hidden text-ellipsis text-center">
+                            </div>
+                            
+                            <div class="mt-1 text-center">
+                                <input type="text" readonly value="{{ cronograma.ccpp.nombre|default:'Sin nombre' }}" 
+                                    class="input-invisible w-full bg-transparent text-xs text-slate-600 border-none p-0 focus:ring-0 cursor-default overflow-hidden text-ellipsis italic text-center">
+                            </div>
+                            
+                        </div>
+                    </div>
+                </div>
+                <div class="absolute right-4 lg:hidden">
+                    <button onclick="alternarMenu()" class="p-2 text-slate-400 hover:text-red-500">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <nav class="flex-1 px-3 py-4 space-y-6 overflow-y-auto">
+                
+
+                <div>
+                    <p class="block text-xs font-bold text-slate-500 uppercase mb-1 ml-1">Acciones</p>
+                    <div class="space-y-1">
+                        <button type="submit" form="form-notificacion" class="w-full flex items-center px-3 py-2 text-slate-600 hover:bg-indigo-50 hover:text-indigo-700 rounded-lg transition-all group">
+                            <svg class="w-3.5 h-3.5 mr-2 text-slate-400 group-hover:text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"></path>
+                            </svg>
+                            <span class="text-xs font-medium">Guardar</span>
+                        </button>
+
+                        {% if notificacion_obj.FK_ficha %}
+                            <a href="{% url 'enviar_correo' cronograma.ccpp.id cronograma.unidad.id inspeccion.id %}?ficha_id={{ notificacion_obj.FK_ficha.id }}" 
+                            target="_blank" 
+                            class="w-full flex items-center px-3 py-2 text-slate-600 hover:bg-indigo-50 hover:text-indigo-700 rounded-lg transition-all group">
+                                <svg class="w-4 h-4 mr-2 text-slate-400 group-hover:text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                                </svg>
+                                <span class="text-xs font-medium">Correo (con Ficha)</span>
+                            </a>
+                        {% else %}
+                            {# Si NO existe ficha: solo pasar los parámetros principales #}
+                            <a href="{% url 'enviar_correo' cronograma.ccpp.id cronograma.unidad.id inspeccion.id %}" 
+                            target="_blank" 
+                            class="w-full flex items-center px-3 py-2 text-slate-600 hover:bg-indigo-50 hover:text-indigo-700 rounded-lg transition-all group">
+                                <svg class="w-4 h-4 mr-2 text-slate-400 group-hover:text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                                </svg>
+                                <span class="text-xs font-medium">Correo (sin Ficha)</span>
+                            </a>
+                        {% endif %}
+                    </div>
+
+                </div>
+
+
+                <div>
+                    <p class="block text-xs font-bold text-slate-500 uppercase mb-1 ml-1">Inspeccion</p>
+                    <div class="px-1 space-y-3">
+                        <div class="relative p-3 rounded-lg bg-slate-50 border border-slate-100 overflow-hidden group">
+                            <div class="absolute top-0 left-0 w-1 h-full" style="background-color: {{ inspeccion.color_inspeccion }};"></div>
+                            
+                            <div class="space-y-2">
+                                <div>
+                                    <span class="text-[10px] font-bold text-slate-400 uppercase block">Código</span>
+
+                                    <span class="inline-flex items-center justify-center px-2 py-1 text-xs font-bold text-white rounded min-w-[50px]"
+                                        style="background-color: {{ inspeccion.color_inspeccion|default:'#6b7280' }}">
+                                        {{ inspeccion.codigo_inspeccion }}
+                                    </span>
+
+                                </div>
+                                <div>
+                                    <span class="text-[10px] font-bold text-slate-400 uppercase block">Nombre</span>
+                                    <span class="text-xs font-semibold text-slate-600 leading-tight block">{{ inspeccion.nombre_inspeccion }}</span>
+                                </div>
+                                <div>
+                                    <span class="text-[10px] font-bold text-slate-400 uppercase block">Notificación A</span>
+                                    <span class="text-[11px] font-medium text-indigo-600 truncate block">{{ inspeccion.notificacionA_inspeccion }}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <p class="block text-xs font-bold text-slate-500 uppercase mb-1 ml-1">Unidad</p>
+                    <div class="px-1">
+                        <div class="p-3 rounded-lg bg-indigo-50/30 border border-indigo-100/50 space-y-2">
+                            <div class="space-y-1">
+                                <input type="text" value="{{ cronograma.unidad.capitulo }}" readonly 
+                                    class="input-invisible w-full bg-transparent border-none p-0 text-xs text-slate-800 leading-tight focus:ring-0 cursor-default"
+                                    title="{{ cronograma.unidad.capitulo }}">
+
+                                <input type="text" value="{{ cronograma.unidad.unidad }}" readonly 
+                                    class="input-invisible w-full bg-transparent border-none p-0 text-xs font-black text-slate-800 leading-tight focus:ring-0 cursor-default"
+                                    title="{{ cronograma.unidad.unidad }}">
+
+
+                                <input type="text" value="{{ cronograma.unidad.descripcion }}" readonly 
+                                    class=" input-invisible w-full bg-transparent border-none p-0 text-[11px] text-slate-500 leading-snug italic focus:ring-0 cursor-default"
+                                    title="{{ cronograma.unidad.descripcion }}">
+                            </div>
+
+                            <hr class="border-indigo-100/50">
+
+                            <div class="grid grid-cols-2 gap-2">
+                                <div class="flex flex-col min-w-0">
+                                    <span class="text-[9px] font-bold text-slate-400 uppercase">Documento (DOC)</span>
+                                    <input type="text" value="{{ cronograma.unidad.doc }}" readonly 
+                                        class="input-invisible w-full bg-transparent border-none p-0 text-[10px] font-semibold text-indigo-700 focus:ring-0 cursor-default"
+                                        title="{{ cronograma.unidad.doc }}">
+                                </div>
+
+                                <div class="flex flex-col min-w-0">
+                                    <span class="input-invisible text-[9px] font-bold text-slate-400 uppercase">Observación</span>
+                                    <input type="text" value="{{ cronograma.unidad.observacion|default:'Sin obs.' }}" readonly 
+                                        class="input-invisible w-full bg-transparent border-none p-0 text-[10px] font-medium text-slate-600 focus:ring-0 cursor-default"
+                                        title="{{ cronograma.unidad.observacion }}">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <p class="block text-xs font-bold text-slate-500 uppercase mb-1 ml-1">Seguimiento</p>
+                    <div class="px-1 space-y-2">
+                        {% if notificacion_existe %}
+                            <div class="flex items-center p-2 bg-emerald-50 rounded-lg border border-emerald-100">
+                                <div class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse mr-2"></div>
+                                <span class="text-xs font-bold text-emerald-700 uppercase">Notificación Activa</span>
+                            </div>
+                            
+                            <div class="space-y-1 mt-2">
+                                <div class="flex justify-between px-2">
+                                    <span class="text-[10px] text-slate-400">Ejecutada:</span>
+                                    <span class="text-[10px] font-bold {% if notificacion_obj.RespInspEjecutada %}text-emerald-600{% else %}text-amber-600{% endif %}">
+                                        {% if notificacion_obj.RespInspEjecutada %}SÍ{% else %}NO{% endif %}
+                                    </span>
+                                </div>
+                                <div class="flex justify-between px-2">
+                                    <span class="text-[10px] text-slate-400">Contestada:</span>
+                                    <span class="text-[10px] font-bold {% if notificacion_obj.NotificacionContestada %}text-emerald-600{% else %}text-amber-600{% endif %}">
+                                        {% if notificacion_obj.NotificacionContestada %}SÍ{% else %}NO{% endif %}
+                                    </span>
+                                </div>
+                            </div>
+                        {% else %}
+                            <div class="flex items-center p-2 bg-slate-100 rounded-lg border border-slate-200 opacity-60">
+                                <div class="w-1.5 h-1.5 rounded-full bg-slate-400 mr-2"></div>
+                                <span class="text-xs font-bold text-slate-500 uppercase">Sin Notificar</span>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </nav>
+
+            <div class="p-2 border-t border-indigo-50">
+                <div class="flex items-center p-1.5 space-x-2 bg-indigo-50/50 rounded">
+                    <div class="w-6 h-6 flex-shrink-0 rounded-full bg-indigo-600 flex items-center justify-center text-white font-bold text-[9px]">
+                        {% if user.first_name and user.last_name %}
+                            {{ user.first_name|slice:":1" }}{{ user.last_name|slice:":1" }}
+                        {% else %}
+                            {{ user.username|slice:":2"|upper }}
+                        {% endif %}
+                    </div>
+                    
+                    <div class="flex-1 min-w-0 leading-tight">
+                        <input 
+                            type="text" 
+                            value="{{ user.username }}" 
+                            readonly 
+                            class="input-invisible w-full bg-transparent border-none p-0 text-xs font-bold text-slate-900 focus:ring-0 cursor-default truncate"
+                            title="{{ user.username }}"
+                        >
+                        
+                        <input 
+                            type="email" 
+                            value="{{ user.email }}" 
+                            readonly 
+                            class="input-invisible w-full bg-transparent border-none p-0 text-[10px] text-indigo-500 focus:ring-0 cursor-default truncate block -mt-1"
+                            title="{{ user.email }}"
+                        >
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <main class="flex-1 flex flex-col min-w-0 bg-slate-50">
+            <header class="h-16 bg-white border-b border-slate-100 flex items-center px-4 sm:px-6 justify-between flex-shrink-0">
+                <div class="flex items-center gap-4">
+                    <button type="button" onclick="alternarMenu()" 
+                            class="lg:hidden p-2 rounded-lg text-slate-500 hover:bg-slate-50 hover:text-indigo-600 transition-all border border-slate-100 shadow-sm">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 6h16M4 12h16M4 18h16"></path>
+                        </svg>
+                    </button>
+
+                    <div class="flex items-baseline gap-3">
+                        <h1 class="text-lg font-bold text-slate-800 tracking-tight leading-none">
+                            Gestionar notificación 
+                        </h1>
+
+                        <nav class="hidden md:flex items-center text-xs font-medium">
+                            <span class="mx-1.5 text-slate-300">|</span>
+                            <div class="flex items-center gap-1.5">
+                                <a href="{% url 'panel_principal' %}" class="text-slate-400 hover:text-indigo-600 transition-colors">Inicio</a>
+
+                                <svg class="w-3.5 h-3.5 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                                </svg>
+
+                                <a href="{% url 'gestion_ccpp' cronograma.ccpp.id %}" class="text-slate-400 hover:text-indigo-600 transition-colors">Cronograma</a>
+
+                                <svg class="w-3.5 h-3.5 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                                </svg>
+
+                                <a href="{% url 'vista_panel_notificacion' cronograma.ccpp.id %}" class="text-slate-400 hover:text-indigo-600 transition-colors">Notificaciones</a>
+
+                                <svg class="w-3.5 h-3.5 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                                </svg>
+
+                                <a href="" class="text-indigo-500 hover:text-indigo-700">Gestión_Notificacion</a>
+                            </div>
+                        </nav>
+                    </div>
+                </div>
+            </header>
+
+            <section class="flex-1 overflow-y-auto px-4 pt-2 pb-4">
+                <form id="form-notificacion" action="{% url 'guardar_notificacion' cronograma.id mes_nombre %}" method="POST" enctype="multipart/form-data" 
+                    class="max-w-6xl mx-auto space-y-3 mt-2">
+                    {% csrf_token %}
+                    
+                    <input type="hidden" name="cronograma_id" value="{{ cronograma.id }}">
+                    <input type="hidden" name="mes" value="{{ mes_nombre }}">
+
+                    <!-- Reemplaza la sección del interruptor con esto: -->
+                    <div class="bg-white rounded-xl shadow-sm border border-slate-100 px-4 py-3 flex items-center justify-between">
+                        <div class="flex items-center gap-2">
+                            <div class="p-2 {% if notificacion_existe %} bg-indigo-50 {% else %} bg-slate-50 {% endif %} rounded">
+                                <svg class="w-4 h-4 {% if notificacion_existe %} text-indigo-600 {% else %} text-slate-400 {% endif %}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path>
+                                </svg>
+                            </div>
+                            <div>
+                                <h2 class="text-sm font-bold text-slate-800 uppercase tracking-tight">Estado de Notificación</h2>
+                                <p class="text-xs text-slate-400">Activar para habilitar gestión de respuesta</p>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center gap-3">
+                            <span class="text-xs font-bold {% if notificacion_existe %} text-indigo-600 {% else %} text-slate-400 {% endif %} uppercase">
+                                {% if notificacion_existe %} Activo {% else %} Inactivo {% endif %}
+                            </span>
+
+                            <label class="relative inline-flex items-center cursor-pointer">
+                                <input type="checkbox" id="toggle-activo" name="notificacion_activa" class="sr-only peer" 
+                                    {% if notificacion_existe %} checked {% endif %}
+                                    data-id="{{ cronograma.id }}" 
+                                    data-mes="{{ mes_nombre }}"
+                                    onchange="manejarActivacion(this)">
+                                <div class="w-11 h-6 bg-slate-200 rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                        
+                        <div class="bg-white rounded-xl shadow-sm border border-slate-100 p-4 flex flex-col h-[400px]">
+                            <h3 class="text-sm font-bold text-slate-800 mb-4 flex items-center">
+                                <svg class="w-3.5 h-3.5 mr-2 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                                </svg>
+                                Destinatarios
+                            </h3>
+
+                            <div class="flex-1 overflow-y-auto pr-2 custom-scrollbar space-y-4">
+                                <div class="space-y-2">
+                                    <div class="flex items-center justify-between px-2">
+                                        <span class="text-[10px] font-black text-indigo-600 uppercase tracking-widest">Para</span>
+                                        <span class="text-[10px] text-slate-400 font-medium italic">Principal</span>
+                                    </div>
+                                    <div class="space-y-1">
+                                        {% if correos_ccpp.para %}
+                                            {% for correo in correos_ccpp.para %}
+                                            <label class="flex items-center p-2 rounded-lg border border-slate-50 hover:bg-indigo-50 transition-colors cursor-pointer group">
+                                                <input type="checkbox" name="destinatarios_para" value="{{ correo }}" 
+                                                    {% if notificacion_existe and correo in notificacion_obj.para %}checked{% endif %}
+                                                    class="w-3.5 h-3.5 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500">
+                                                <span class="ml-2 text-xs text-slate-600 truncate">{{ correo }}</span>
+                                            </label>
+                                            {% endfor %}
+                                        {% else %}
+                                            <p class="text-xs text-slate-400 text-center py-3">No hay correos configurados</p>
+                                        {% endif %}
+                                    </div>
+                                </div>
+
+                                <div class="space-y-2">
+                                    <div class="flex items-center justify-between px-2 border-t border-slate-50 pt-3">
+                                        <span class="text-[10px] font-black text-slate-500 uppercase tracking-widest">CC</span>
+                                        <span class="text-[10px] text-slate-400 font-medium italic">Copia</span>
+                                    </div>
+                                    <div class="space-y-1">
+                                        {% if correos_ccpp.cc %}
+                                            {% for correo in correos_ccpp.cc %}
+                                            <label class="flex items-center p-2 rounded-lg border border-slate-50 hover:bg-slate-50 transition-colors cursor-pointer group">
+                                                <input type="checkbox" name="destinatarios_cc" value="{{ correo }}" 
+                                                    {% if notificacion_existe and correo in notificacion_obj.cc %}checked{% endif %}
+                                                    class="w-3.5 h-3.5 text-slate-500 rounded border-slate-300 focus:ring-slate-400">
+                                                <span class="ml-2 text-xs text-slate-600 truncate">{{ correo }}</span>
+                                            </label>
+                                            {% endfor %}
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="space-y-2">
+                                    <div class="flex items-center justify-between px-2 border-t border-slate-50 pt-3">
+                                        <span class="text-[10px] font-black text-slate-500 uppercase tracking-widest">CCO</span>
+                                        <span class="text-[10px] text-slate-400 font-medium italic">Copia Oculta</span>
+                                    </div>
+                                    <div class="space-y-1">
+                                        {% if correos_ccpp.cco %}
+                                            {% for correo in correos_ccpp.cco %}
+                                            <label class="flex items-center p-2 rounded-lg border border-slate-50 hover:bg-slate-50 transition-colors cursor-pointer group">
+                                                <input type="checkbox" name="destinatarios_cco" value="{{ correo }}" 
+                                                    {% if notificacion_existe and correo in notificacion_obj.cco %}checked{% endif %}
+                                                    class="w-3.5 h-3.5 text-slate-500 rounded border-slate-300 focus:ring-slate-400">
+                                                <span class="ml-2 text-xs text-slate-600 truncate">{{ correo }}</span>
+                                            </label>
+                                            {% endfor %}
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bg-white rounded-xl shadow-sm border border-slate-100 p-4 flex flex-col h-[400px]">
+                            {% if notificacion_existe %}
+                                <h3 class="text-sm font-bold text-slate-800 mb-3 flex items-center">
+                                    <svg class="w-3.5 h-3.5 mr-2 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                                    </svg>
+                                    Fichas de la Unidad
+                                </h3>
+                                
+                                <div class="mb-3">
+                                    <p class="text-xs text-slate-500 px-1">Seleccione una ficha para asociar:</p>
+                                </div>
+
+                                <div class="flex-1 overflow-y-auto pr-2 custom-scrollbar space-y-2">
+                                    {% if fichas_unidad %}
+                                        <!-- Opción para "Sin ficha" -->
+                                        <label class="flex items-center p-3 rounded-lg border border-slate-100 hover:border-indigo-100 hover:bg-indigo-50/30 transition-all cursor-pointer group">
+                                            <input type="radio" name="ficha_seleccionada" value="" 
+                                                {% if not notificacion_obj.FK_ficha %} checked {% endif %}
+                                                class="w-3.5 h-3.5 text-indigo-600 border-slate-300 focus:ring-indigo-500">
+                                            <div class="ml-3">
+                                                <span class="block text-xs font-medium text-slate-700">Sin ficha asignada</span>
+                                                <span class="block text-[10px] text-slate-400 mt-0.5">No se asignará ninguna ficha</span>
+                                            </div>
+                                        </label>
+                                        
+                                        {% for ficha in fichas_unidad %}
+                                        <label class="flex items-center p-3 rounded-lg border border-slate-100 hover:border-indigo-100 hover:bg-indigo-50/30 transition-all cursor-pointer group">
+                                            <input type="radio" name="ficha_seleccionada" value="{{ ficha.id }}" 
+                                                {% if notificacion_obj.FK_ficha.id == ficha.id %} checked {% endif %}
+                                                class="w-3.5 h-3.5 text-indigo-600 border-slate-300 focus:ring-indigo-500">
+                                            <div class="ml-3 flex-1">
+                                                <div class="flex justify-between items-start">
+                                                    <div>
+                                                        <input 
+                                                            type="text" 
+                                                            value="{{ ficha.PK_titulo }}" 
+                                                            readonly 
+                                                            class="input-invisible w-full bg-transparent border-none p-0 text-xs focus:ring-0 cursor-default truncate block -mt-1"
+                                                            title="{{ ficha.PK_titulo }}"
+                                                        >
+                                                        <span class="block text-[10px] text-slate-400 mt-0.5">
+                                                            {{ ficha.fecha_creacion|date:"d/m/Y" }}
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </label>
+                                        {% endfor %}
+                                    {% else %}
+                                        <div class="text-center py-6">
+                                            <svg class="w-10 h-10 text-slate-300 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                                            </svg>
+                                            <p class="text-xs text-slate-400 font-medium">No hay fichas disponibles</p>
+                                            <p class="text-xs text-slate-400 mt-0.5">Esta unidad no tiene fichas creadas</p>
+                                        </div>
+                                    {% endif %}
+                            {% else %}
+                                <div class="bg-indigo-50/30 border border-dashed border-indigo-100 rounded-xl p-8 flex flex-col items-center justify-center text-center h-full min-h-[300px]">
+                                    <div class="w-12 h-12 bg-white rounded-lg flex items-center justify-center mb-3 shadow-sm">
+                                        <svg class="w-6 h-6 text-indigo-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+                                        </svg>
+                                    </div>
+                                    <h3 class="text-xs font-bold text-indigo-900 uppercase tracking-widest mb-1.5">Formulario Bloqueado</h3>
+                                    <p class="text-xs text-slate-500 max-w-xs leading-relaxed">
+                                        Active el interruptor superior y <b>Guarde los cambios</b> para habilitar la seleccion de fichas.
+                                    </p>
+                                </div>
+                            {% endif %}
+                            </div>
+                            
+                            {% if fichas_unidad and notificacion_obj.FK_ficha %}
+                            <div class="mt-3 pt-3 border-t border-slate-100">
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <span class="text-[10px] font-bold text-slate-500 uppercase">Ficha actual:</span>
+                                        <p class="text-xs font-medium text-indigo-600">{{ notificacion_obj.FK_ficha.PK_titulo }}</p>
+                                    </div>
+                                    <span class="text-[10px] bg-indigo-100 text-indigo-700 px-1.5 py-0.5 rounded-full">Asignada</span>
+                                </div>
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="lg:col-span-2">
+                            {% if notificacion_existe %}
+                                <div class="bg-white rounded-xl shadow-sm border border-slate-100 p-6 animate-in fade-in slide-in-from-bottom-4 duration-500 space-y-4">
+                                    <h3 class="text-sm font-bold text-slate-800 mb-4 flex items-center">
+                                        <svg class="w-3.5 h-3.5 mr-2 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                                        </svg>
+                                        Respuesta
+                                    </h3>
+                                    
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div>
+                                            <label class="block text-xs font-bold text-slate-500 uppercase mb-1 ml-1">Fecha de Respuesta</label>
+                                            <input type="date" name="fecha_respuesta" value="{{ notificacion_obj.FechaResp|date:'Y-m-d' }}" class="w-full px-3 py-2 rounded-lg border border-slate-200 focus:ring-2 focus:ring-indigo-100 outline-none text-xs">
+                                        </div>
+
+                                        <div>
+                                            <label class="block text-xs font-bold text-slate-500 uppercase mb-1 ml-1">Revisión</label>
+                                            <input type="text" name="revision" value="{{ notificacion_obj.RespRevision }}" placeholder="Ej: REV-01" class="w-full px-3 py-2 rounded-lg border border-slate-200 focus:ring-2 focus:ring-indigo-100 outline-none text-xs">
+                                        </div>
+
+                                        <div>
+                                            <label class="block text-xs font-bold text-slate-500 uppercase mb-1 ml-1">Controlador</label>
+                                            <input type="text" name="controlador" value="{{ notificacion_obj.RespControlador }}" placeholder="Nombre responsable" class="w-full px-3 py-2 rounded-lg border border-slate-200 focus:ring-2 focus:ring-indigo-100 outline-none text-xs">
+                                        </div>
+
+                                        <div>
+                                            <label class="block text-xs font-bold text-slate-500 uppercase mb-1 ml-1">Notificación Contestada</label>
+                                            <input type="text" name="via" value="{{ notificacion_obj.RespVia }}" placeholder="Estado de respuesta" class="w-full px-3 py-2 rounded-lg border border-slate-200 focus:ring-2 focus:ring-indigo-100 outline-none text-xs">
+                                        </div>
+                                    </div>
+
+                                    <div class="flex items-center p-2 bg-slate-50 rounded-lg border border-dashed border-slate-200 hover:border-indigo-200 transition-colors">
+                                        <label class="flex items-center cursor-pointer w-full">
+                                            <input type="checkbox" name="inspeccion_ejecutada" {% if notificacion_obj.RespInspEjecutada %} checked {% endif %} class="w-3.5 h-3.5 text-indigo-600 rounded">
+                                            <span class="ml-2 text-xs font-semibold text-slate-700">Inspección Ejecutada</span>
+                                        </label>
+                                    </div>
+
+                                    <div>
+                                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1 ml-1">Observaciones</label>
+                                        <textarea name="observaciones" rows="4" class="w-full px-3 py-2 rounded-lg border border-slate-200 focus:ring-2 focus:ring-indigo-100 outline-none text-xs resize-none">{{ notificacion_obj.RespObservacion }}</textarea>
+                                    </div>
+
+                                    <div class="space-y-2">
+                                        <label class="block text-xs font-bold text-slate-500 uppercase ml-1">Documentos Adjuntos</label>
+                                        
+                                        {% if documentos %}
+                                            <div class="space-y-2 mb-3">
+                                                {% for documento in documentos %}
+                                                <div class="flex items-center justify-between p-2 bg-slate-50 rounded-lg border border-slate-100 group hover:bg-white transition-colors">
+                                                    <div class="flex items-center space-x-2">
+                                                        <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                                                        </svg>
+                                                        <div>
+                                                            <a href="{{ documento.archivo.url }}" target="_blank" 
+                                                            class="text-xs font-medium text-slate-700 hover:text-indigo-600 transition-colors">
+                                                                {{ documento.nombre_original }}
+                                                            </a>
+                                                            <p class="text-[10px] text-slate-400">
+                                                                {{ documento.fecha_subida|date:"d/m/Y" }} • 
+                                                                {{ documento.tamano|filesizeformat }}
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                    <!-- Botón para activar el modal -->
+                                                    <button type="button" onclick="confirmarEliminarDoc('{{ documento.id }}')" 
+                                                            class="p-1 text-slate-400 hover:text-red-500 rounded hover:bg-red-50 transition-colors">
+                                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                                        </svg>
+                                                    </button>
+                                                </div>
+                                                {% endfor %}
+                                            </div>
+                                        {% endif %}
+                                        
+                                        <div class="relative group">
+                                            <input type="file" name="archivos" multiple class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10">
+                                            <div class="border-2 border-dashed border-slate-100 group-hover:bg-slate-50 group-hover:border-indigo-100 rounded-lg p-3 transition-all text-center">
+                                                <p class="text-xs text-slate-500 text-center">Click para adjuntar o arrastra archivos</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% else %}
+                                <div class="bg-indigo-50/30 border border-dashed border-indigo-100 rounded-xl p-8 flex flex-col items-center justify-center text-center h-full min-h-[300px]">
+                                    <div class="w-12 h-12 bg-white rounded-lg flex items-center justify-center mb-3 shadow-sm">
+                                        <svg class="w-6 h-6 text-indigo-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+                                        </svg>
+                                    </div>
+                                    <h3 class="text-xs font-bold text-indigo-900 uppercase tracking-widest mb-1.5">Formulario Bloqueado</h3>
+                                    <p class="text-xs text-slate-500 max-w-xs leading-relaxed">
+                                        Active el interruptor superior y <b>Guarde los cambios</b> para habilitar la gestión de respuesta.
+                                    </p>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </form>
+            </section>
+        </main>
+    </div>
+
+    <div id="fondo-oscuro" class="fixed inset-0 bg-black/50 z-40 hidden lg:hidden" onclick="alternarMenu()"></div>
+
+
+
+
+
+
+    <!-- Modal de confirmación para eliminar notificación -->
+    <div id="modal-confirmacion" class="fixed top-6 right-6 z-[10000] hidden w-full max-w-sm transition-all duration-600 ease-[cubic-bezier(0.4,0,0.2,1)] opacity-0 translate-x-full">
+        <div class="message-item relative overflow-hidden rounded-2xl bg-white/90 backdrop-blur-md border border-white/20 shadow-[0_8px_32px_0_rgba(31,38,135,0.2)] hover:translate-y-[-2px] transition-transform duration-500 pointer-events-auto">
+            
+            <div class="p-4 flex items-start">
+                <div class="flex-shrink-0 flex items-center justify-center w-10 h-10 rounded-full bg-red-100 text-red-600">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                    </svg>
+                </div>
+
+                <div class="ml-4 flex-1">
+                    <p class="text-sm font-bold text-gray-900 leading-tight">¿Desactivar Notificación?</p>
+                    <p class="text-sm text-gray-600 mt-1">Esta acción eliminará todos los datos guardados para este mes.</p>
+                    
+                    <div class="flex gap-2 mt-4">
+                        <button onclick="confirmarEliminacion()" class="flex-1 px-3 py-1.5 bg-red-600 text-white rounded-lg font-bold text-[11px] uppercase tracking-wider hover:bg-red-700 transition-colors">
+                            Sí, eliminar
+                        </button>
+                        <button id="btn-cancelar-modal" onclick="cancelarDesactivacion()" class="flex-1 px-3 py-1.5 bg-gray-100 text-gray-700 rounded-lg font-bold text-[11px] uppercase tracking-wider hover:bg-gray-200 transition-colors focus:outline-none focus:ring-2 focus:ring-slate-400">
+                            Cancelar
+                        </button>
+                    </div>
+                </div>
+
+                <button onclick="cancelarDesactivacion()" class="ml-2 text-gray-400 hover:text-gray-600 transition-colors">
+                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+
+            <div class="h-1 w-full bg-gray-100/50">
+                <div class="h-full bg-red-500 w-full"></div>
+            </div>
+        </div>
+    </div>
+                             
+
+    <div id="modal-doc" class="fixed top-6 right-6 z-[10000] hidden w-full max-w-sm transition-all duration-600 ease-[cubic-bezier(0.4,0,0.2,1)] opacity-0 translate-x-full">
+        <div class="message-item relative overflow-hidden rounded-2xl bg-white/90 backdrop-blur-md border border-white/20 shadow-[0_8px_32px_0_rgba(31,38,135,0.2)] hover:translate-y-[-2px] transition-transform duration-500 pointer-events-auto">
+            <div class="p-4 flex items-start">
+                <div class="flex-shrink-0 flex items-center justify-center w-10 h-10 rounded-full bg-red-100 text-red-600">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                    </svg>
+                </div>
+                <div class="ml-4 flex-1">
+                    <p class="text-sm font-bold text-gray-900 leading-tight">¿Eliminar Documento?</p>
+                    <p class="text-sm text-gray-600 mt-1">Esta acción eliminará el archivo de forma permanente.</p>
+                    
+                    <!-- Formulario en el modal -->
+                    <form id="form-eliminar-modal" method="POST">
+                        {% csrf_token %}
+                        <div class="flex gap-2 mt-4">
+                            <button type="submit" id="btn-confirmar-doc" 
+                                    class="flex-1 px-3 py-1.5 bg-red-600 text-white rounded-lg font-bold text-[11px] uppercase tracking-wider hover:bg-red-700 transition-colors">
+                                Sí, eliminar
+                            </button>
+                            <button type="button" id="btn-cancelar-doc" onclick="cerrarModalDoc()" 
+                                    class="flex-1 px-3 py-1.5 bg-gray-100 text-slate-700 rounded-lg font-bold text-[11px] uppercase tracking-wider hover:bg-gray-200 transition-colors focus:ring-2 focus:ring-slate-300 outline-none">
+                                Cancelar
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            <div class="h-1 w-full bg-gray-100/50">
+                <div class="h-full bg-red-500 w-full"></div>
+            </div>
+        </div>
+    </div>
+
+
+
+
+    <script>
+
+        /**
+        * Alterna la visibilidad del menú lateral en dispositivos móviles.
+        */
+        function alternarMenu() {
+            const menuLateral = document.getElementById('sidebar-principal');
+            const fondoOscuro = document.getElementById('fondo-oscuro');
+            
+            // Si el menú tiene la clase de estar movido a la izquierda (-translate-x-full)
+            if (menuLateral.classList.contains('-translate-x-full')) {
+                // Abrir menú
+                menuLateral.classList.remove('-translate-x-full');
+                menuLateral.classList.add('translate-x-0');
+                fondoOscuro.classList.remove('hidden');
+            } else {
+                // Cerrar menú
+                menuLateral.classList.remove('translate-x-0');
+                menuLateral.classList.add('-translate-x-full');
+                fondoOscuro.classList.add('hidden');
+            }
+        }
+
+
+
+
+
+       let inputReferencia = null;
+
+        function abrirModalAnimado() {
+            const modal = document.getElementById('modal-confirmacion');
+            const btnCancelar = document.getElementById('btn-cancelar-modal');
+            
+            modal.classList.remove('hidden');
+            
+            // Forzamos el reflow
+            void modal.offsetWidth; 
+            
+            modal.classList.remove('opacity-0', 'translate-x-full');
+
+            // Esperamos un instante a que el elemento sea visible para poner el foco
+            setTimeout(() => {
+                if (btnCancelar) btnCancelar.focus();
+            }, 100);
+        }
+
+        function cerrarModalAnimado(callback) {
+            const modal = document.getElementById('modal-confirmacion');
+            modal.classList.add('opacity-0', 'translate-x-full');
+            
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                if (callback) callback();
+            }, 600);
+        }
+
+        function manejarActivacion(input) {
+            inputReferencia = input;
+            const cronogramaId = input.getAttribute('data-id');
+            const mesNombre = input.getAttribute('data-mes');
+
+            if (input.checked) {
+                enviarFormularioDinamico(cronogramaId, mesNombre, 'on');
+            } else {
+                input.checked = true;
+                abrirModalAnimado();
+            }
+        }
+
+        function confirmarEliminacion() {
+            if (inputReferencia) {
+                const id = inputReferencia.getAttribute('data-id');
+                const mes = inputReferencia.getAttribute('data-mes');
+                
+                cerrarModalAnimado(() => {
+                    enviarFormularioDinamico(id, mes, 'off');
+                });
+            }
+        }
+
+        function cancelarDesactivacion() {
+            cerrarModalAnimado();
+        }
+
+        function enviarFormularioDinamico(id, mes, estado) {
+            const url = `/guardar-notificacion/${id}/${mes}/`;
+            const formData = new FormData();
+            
+            formData.append('notificacion_activa', estado);
+            formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+
+            fetch(url, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => {
+                window.location.reload();
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Ocurrió un error al procesar la solicitud');
+            });
+        }
+
+
+
+
+
+
+        let documentoIDActual = null;
+
+        function confirmarEliminarDoc(docId) {
+            documentoIDActual = docId;
+            const modal = document.getElementById('modal-doc');
+            const form = document.getElementById('form-eliminar-modal');
+            const btnCancelar = document.getElementById('btn-cancelar-doc');
+
+            // Actualizar el action del formulario
+            form.action = `/eliminar-documento/${docId}/`;
+
+            // Mostrar modal
+            modal.classList.remove('hidden');
+            
+            setTimeout(() => {
+                modal.classList.remove('opacity-0', 'translate-x-full');
+                if (btnCancelar) btnCancelar.focus();
+            }, 10);
+        }
+
+        function cerrarModalDoc() {
+            const modal = document.getElementById('modal-doc');
+            
+            // Animación de salida
+            modal.classList.add('opacity-0', 'translate-x-full');
+            
+            setTimeout(() => {
+                modal.classList.add('hidden');
+            }, 600);
+        }
+
+
+    </script>
+
+
+
+
+</body>
+</html>

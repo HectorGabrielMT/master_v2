@@ -1,0 +1,624 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block extra_css %}
+<style>
+    /* Estilos específicos del dashboard de cronograma */
+    .dashboard-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 10px;
+        margin-bottom: 20px;
+    }
+    
+    .card-estadistica {
+        border-radius: 10px;
+        border: none;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        transition: transform 0.3s ease;
+    }
+    
+    .card-estadistica:hover {
+        transform: translateY(-5px);
+    }
+    
+    .estado-completado {
+        background-color: #d4edda;
+        border-left: 4px solid #28a745;
+    }
+    
+    .estado-programado {
+        background-color: #fff3cd;
+        border-left: 4px solid #ffc107;
+    }
+    
+    .estado-pendiente {
+        background-color: #f8f9fa;
+        border-left: 4px solid #6c757d;
+    }
+    
+    .estado-registrado {
+        background-color: #cce5ff;
+        border-left: 4px solid #007bff;
+    }
+    
+    .badge-estado {
+        padding: 5px 10px;
+        font-size: 0.8em;
+        font-weight: 500;
+    }
+    
+    .badge-completado {
+        background-color: #28a745;
+    }
+    
+    .badge-programado {
+        background-color: #ffc107;
+        color: #212529;
+    }
+    
+    .badge-pendiente {
+        background-color: #6c757d;
+    }
+    
+    .badge-registrado {
+        background-color: #007bff;
+    }
+    
+    .fila-cronograma:hover {
+        background-color: #f8f9fa;
+    }
+    
+    .mes-selector {
+        background-color: #e9ecef;
+        border-radius: 5px;
+        padding: 10px;
+    }
+    
+    .mes-activo {
+        background-color: #007bff;
+        color: white;
+        font-weight: bold;
+    }
+    
+    .progreso-bar {
+        height: 10px;
+        border-radius: 5px;
+        overflow: hidden;
+    }
+    
+    .actividad-proxima {
+        border-left: 4px solid #ff6b6b;
+        padding-left: 10px;
+        margin-bottom: 10px;
+    }
+    
+    .filtro-activo {
+        background-color: #007bff !important;
+        color: white !important;
+    }
+    
+    /* Estilos para la tabla responsiva */
+    @media (max-width: 768px) {
+        .table-responsive {
+            font-size: 0.9em;
+        }
+        
+        .badge-estado {
+            font-size: 0.7em;
+            padding: 3px 6px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    {% if error %}
+    <div class="alert alert-danger" role="alert">
+        <i class="fas fa-exclamation-triangle"></i> {{ error }}
+    </div>
+    {% else %}
+    
+    <!-- Header del Dashboard -->
+    <div class="dashboard-header p-4 mb-4">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h1 class="h2 mb-2">
+                    <i class="fas fa-calendar-alt me-2"></i>Dashboard de Cronograma
+                </h1>
+                <p class="mb-0 opacity-75">
+                    Gestión y seguimiento de actividades programadas - {{ ccpp_actual.nombre }}
+                </p>
+            </div>
+            <div class="col-md-4 text-end">
+                <span class="badge bg-light text-dark fs-6 p-2">
+                    <i class="fas fa-clock me-1"></i> {{ hoy }}
+                </span>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Selector de CCPP y Filtros -->
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card card-estadistica">
+                <div class="card-body">
+                    <h6 class="card-title text-muted mb-3">
+                        <i class="fas fa-building me-2"></i>Seleccionar CCPP
+                    </h6>
+                    <select class="form-select" id="select-ccpp" onchange="cambiarCCPP(this.value)">
+                        {% for ccpp in ccpps_asignadas %}
+                        <option value="{{ ccpp.id }}" {% if ccpp.id == ccpp_actual.id %}selected{% endif %}>
+                            {{ ccpp.nombre }} ({{ ccpp.id_ccpp }})
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-8">
+            <div class="card card-estadistica">
+                <div class="card-body">
+                    <h6 class="card-title text-muted mb-3">
+                        <i class="fas fa-filter me-2"></i>Filtros
+                    </h6>
+                    <div class="row g-2">
+                        <div class="col-md-4">
+                            <select class="form-select" id="select-mes" onchange="filtrarDashboard()">
+                                {% for i, mes in meses_nombres %}
+                                <option value="{{ forloop.counter }}" {% if forloop.counter == mes_seleccionado %}selected{% endif %}>
+                                    {{ mes }} {% if forloop.counter == mes_actual_num %}(Actual){% endif %}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <select class="form-select" id="select-anio" onchange="filtrarDashboard()">
+                                {% for anio in anios_disponibles %}
+                                <option value="{{ anio }}" {% if anio == anio_seleccionado %}selected{% endif %}>
+                                    {{ anio }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <select class="form-select" id="select-unidad" onchange="filtrarDashboard()">
+                                <option value="">Todas las unidades</option>
+                                {% for unidad in todas_unidades %}
+                                <option value="{{ unidad.unidad }}" {% if unidad.unidad == unidad_filtro %}selected{% endif %}>
+                                    {{ unidad.unidad|truncatechars:30 }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Tarjetas de Estadísticas -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card card-estadistica bg-primary text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="card-title text-white-50">TOTAL UNIDADES</h6>
+                            <h2 class="mb-0">{{ total_unidades }}</h2>
+                        </div>
+                        <i class="fas fa-list-alt fa-3x opacity-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3">
+            <div class="card card-estadistica bg-success text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="card-title text-white-50">COMPLETADAS</h6>
+                            <h2 class="mb-0">{{ completadas }}</h2>
+                        </div>
+                        <i class="fas fa-check-circle fa-3x opacity-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3">
+            <div class="card card-estadistica bg-warning text-dark">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="card-title text-dark-50">PROGRAMADAS</h6>
+                            <h2 class="mb-0">{{ programadas }}</h2>
+                        </div>
+                        <i class="fas fa-calendar-check fa-3x opacity-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3">
+            <div class="card card-estadistica bg-secondary text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="card-title text-white-50">PENDIENTES</h6>
+                            <h2 class="mb-0">{{ pendientes }}</h2>
+                        </div>
+                        <i class="fas fa-clock fa-3x opacity-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Barra de Progreso -->
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="card card-estadistica">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between mb-2">
+                        <h6 class="card-title text-muted">Progreso General</h6>
+                        <span class="fw-bold">{{ porcentaje_completado }}%</span>
+                    </div>
+                    <div class="progreso-bar bg-light">
+                        <div class="progress" style="height: 15px;">
+                            <div class="progress-bar bg-success" role="progressbar" 
+                                 style="width: {{ porcentaje_completado }}%" 
+                                 aria-valuenow="{{ porcentaje_completado }}" 
+                                 aria-valuemin="0" 
+                                 aria-valuemax="100">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Filtros de Estado -->
+    <div class="row mb-3">
+        <div class="col-md-12">
+            <div class="d-flex flex-wrap gap-2">
+                <button class="btn btn-outline-primary btn-sm filtro-estado {% if not estado_filtro %}filtro-activo{% endif %}" 
+                        onclick="filtrarPorEstado('')">
+                    <i class="fas fa-layer-group me-1"></i> Todos ({{ total_unidades }})
+                </button>
+                <button class="btn btn-outline-success btn-sm filtro-estado {% if estado_filtro == 'completado' %}filtro-activo{% endif %}" 
+                        onclick="filtrarPorEstado('completado')">
+                    <i class="fas fa-check-circle me-1"></i> Completadas ({{ completadas }})
+                </button>
+                <button class="btn btn-outline-warning btn-sm filtro-estado {% if estado_filtro == 'programado' %}filtro-activo{% endif %}" 
+                        onclick="filtrarPorEstado('programado')">
+                    <i class="fas fa-calendar-check me-1"></i> Programadas ({{ programadas }})
+                </button>
+                <button class="btn btn-outline-secondary btn-sm filtro-estado {% if estado_filtro == 'pendiente' %}filtro-activo{% endif %}" 
+                        onclick="filtrarPorEstado('pendiente')">
+                    <i class="fas fa-clock me-1"></i> Pendientes ({{ pendientes }})
+                </button>
+                <button class="btn btn-outline-info btn-sm filtro-estado {% if estado_filtro == 'registrado' %}filtro-activo{% endif %}" 
+                        onclick="filtrarPorEstado('registrado')">
+                    <i class="fas fa-clipboard-check me-1"></i> Registradas
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Tabla de Cronograma -->
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card card-estadistica">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-table me-2"></i>Cronograma - {{ mes_actual_nombre }} {{ anio_seleccionado }}
+                        <small class="text-muted ms-2">({{ datos_cronograma|length }} actividades)</small>
+                    </h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th width="5%">#</th>
+                                    <th width="25%">Unidad</th>
+                                    <th width="15%">Capítulo</th>
+                                    <th width="10%">Orden</th>
+                                    <th width="20%">Estado</th>
+                                    <th width="15%">Valor</th>
+                                    <th width="10%">Años</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for dato in datos_cronograma %}
+                                <tr class="fila-cronograma {{ dato.clase_estado }}">
+                                    <td class="fw-bold">{{ forloop.counter }}</td>
+                                    <td>
+                                        <div class="fw-bold">{{ dato.unidad.unidad }}</div>
+                                        <small class="text-muted">{{ dato.unidad.descripcion|truncatechars:50 }}</small>
+                                    </td>
+                                    <td>{{ dato.unidad.capitulo|truncatechars:30 }}</td>
+                                    <td>
+                                        <span class="badge bg-dark">{{ dato.unidad.orden }}</span>
+                                    </td>
+                                    <td>
+                                        {% if dato.estado == 'completado' %}
+                                        <span class="badge badge-estado badge-completado">
+                                            <i class="fas fa-check-circle me-1"></i> Completado
+                                        </span>
+                                        {% elif dato.estado == 'programado' %}
+                                        <span class="badge badge-estado badge-programado">
+                                            <i class="fas fa-calendar-check me-1"></i> Programado
+                                            {% if dato.dias_restantes %}
+                                            <small class="d-block mt-1">{{ dato.dias_restantes }} días</small>
+                                            {% endif %}
+                                        </span>
+                                        {% elif dato.estado == 'registrado' %}
+                                        <span class="badge badge-estado badge-registrado">
+                                            <i class="fas fa-clipboard-check me-1"></i> Registrado
+                                        </span>
+                                        {% else %}
+                                        <span class="badge badge-estado badge-pendiente">
+                                            <i class="fas fa-clock me-1"></i> Pendiente
+                                        </span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if dato.valor_mes %}
+                                        <span class="text-truncate d-inline-block" style="max-width: 120px;" 
+                                              title="{{ dato.valor_mes }}">
+                                            {{ dato.valor_mes|truncatechars:20 }}
+                                        </span>
+                                        {% else %}
+                                        <span class="text-muted">-</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <span class="fw-bold">{{ dato.cronograma.anios }}</span>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="7" class="text-center py-4">
+                                        <div class="text-muted">
+                                            <i class="fas fa-inbox fa-2x mb-3"></i>
+                                            <p>No hay actividades para mostrar con los filtros actuales</p>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <small class="text-muted">
+                                Mostrando {{ datos_cronograma|length }} de {{ total_unidades }} actividades
+                            </small>
+                        </div>
+                        <div class="col-md-6 text-end">
+                            <button class="btn btn-sm btn-outline-primary" onclick="exportarTabla()">
+                                <i class="fas fa-download me-1"></i> Exportar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Panel Lateral - Próximas Actividades y Vista Mensual -->
+        <div class="col-md-4">
+            <!-- Próximas Actividades -->
+            <div class="card card-estadistica mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-hourglass-half me-2"></i>Próximas Actividades
+                        <small class="text-muted ms-2">(30 días)</small>
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if proximas_actividades %}
+                    {% for actividad in proximas_actividades %}
+                    <div class="actividad-proxima mb-3">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <h6 class="mb-1">{{ actividad.unidad.unidad }}</h6>
+                                <p class="text-muted small mb-1">{{ actividad.unidad.descripcion|truncatechars:40 }}</p>
+                                <span class="badge bg-info">{{ actividad.mes }}</span>
+                                {% if actividad.valor %}
+                                <small class="d-block text-muted mt-1">{{ actividad.valor|truncatechars:30 }}</small>
+                                {% endif %}
+                            </div>
+                            <div class="text-end">
+                                <span class="badge {% if actividad.dias_hasta <= 7 %}bg-danger{% elif actividad.dias_hasta <= 14 %}bg-warning{% else %}bg-primary{% endif %}">
+                                    {{ actividad.dias_hasta }} días
+                                </span>
+                                <div class="text-muted small mt-1">
+                                    {{ actividad.fecha|date:"d/m/Y" }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                    {% else %}
+                    <div class="text-center py-3">
+                        <i class="fas fa-calendar-times fa-2x text-muted mb-3"></i>
+                        <p class="text-muted">No hay actividades programadas para los próximos 30 días</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Vista Rápida Mensual -->
+            <div class="card card-estadistica">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-calendar-alt me-2"></i>Vista Rápida por Mes
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-2">
+                        {% for i, mes in meses_nombres %}
+                        <div class="col-4">
+                            <div class="mes-selector text-center p-2 rounded cursor-pointer 
+                                {% if forloop.counter == mes_seleccionado %}mes-activo{% endif %}"
+                                onclick="seleccionarMes({{ forloop.counter }})">
+                                <div class="small fw-bold">{{ mes|slice:":3" }}</div>
+                                <div class="h6 mb-0">{{ datos_grafico.forloop.counter0 }}</div>
+                                <div class="extra-small text-muted">actividades</div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Notas Importantes -->
+    <div class="row mt-4">
+        <div class="col-md-12">
+            <div class="card card-estadistica">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-sticky-note me-2"></i>Notas y Observaciones
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6 class="text-muted">Leyenda de Estados:</h6>
+                            <div class="d-flex flex-wrap gap-2">
+                                <span class="badge badge-completado">Completado</span>
+                                <span class="badge badge-programado">Programado</span>
+                                <span class="badge badge-pendiente">Pendiente</span>
+                                <span class="badge badge-registrado">Registrado</span>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="text-muted">Información:</h6>
+                            <ul class="small text-muted mb-0">
+                                <li>Total de unidades en la CCPP: {{ total_unidades }}</li>
+                                <li>Progreso general: {{ porcentaje_completado }}%</li>
+                                <li>Mes actual: {{ mes_actual_nombre }} {{ anio_seleccionado }}</li>
+                                <li>Última actualización: {{ hoy }}</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Función para cambiar CCPP
+function cambiarCCPP(ccppId) {
+    const params = new URLSearchParams(window.location.search);
+    params.set('ccpp', ccppId);
+    window.location.search = params.toString();
+}
+
+// Función para filtrar el dashboard
+function filtrarDashboard() {
+    const mes = document.getElementById('select-mes').value;
+    const anio = document.getElementById('select-anio').value;
+    const unidad = document.getElementById('select-unidad').value;
+    
+    const params = new URLSearchParams(window.location.search);
+    params.set('mes', mes);
+    params.set('anio', anio);
+    if (unidad) {
+        params.set('unidad', unidad);
+    } else {
+        params.delete('unidad');
+    }
+    
+    window.location.search = params.toString();
+}
+
+// Función para filtrar por estado
+function filtrarPorEstado(estado) {
+    const params = new URLSearchParams(window.location.search);
+    if (estado) {
+        params.set('estado', estado);
+    } else {
+        params.delete('estado');
+    }
+    
+    window.location.search = params.toString();
+}
+
+// Función para seleccionar mes desde la vista rápida
+function seleccionarMes(mes) {
+    document.getElementById('select-mes').value = mes;
+    filtrarDashboard();
+}
+
+// Función para exportar la tabla
+function exportarTabla() {
+    // Esta función podría implementarse para exportar a Excel o PDF
+    alert('Función de exportación en desarrollo. Los datos están listos para exportar.');
+    
+    // Ejemplo básico de exportación a CSV
+    /*
+    let csv = [];
+    let rows = document.querySelectorAll("table tr");
+    
+    for (let row of rows) {
+        let cols = row.querySelectorAll("td, th");
+        let rowData = [];
+        for (let col of cols) {
+            rowData.push(col.innerText);
+        }
+        csv.push(rowData.join(","));
+    }
+    
+    let csvContent = "data:text/csv;charset=utf-8," + csv.join("\n");
+    let encodedUri = encodeURI(csvContent);
+    let link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", "cronograma_{{ ccpp_actual.id_ccpp }}_{{ mes_actual_nombre }}_{{ anio_seleccionado }}.csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    */
+}
+
+// Inicializar tooltips
+document.addEventListener('DOMContentLoaded', function() {
+    // Inicializar tooltips de Bootstrap si están disponibles
+    if (typeof bootstrap !== 'undefined') {
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl);
+        });
+    }
+    
+    // Configurar evento para celdas con texto truncado
+    const celdasTruncadas = document.querySelectorAll('.text-truncate');
+    celdasTruncadas.forEach(celda => {
+        if (celda.scrollWidth > celda.clientWidth) {
+            celda.setAttribute('data-bs-toggle', 'tooltip');
+            celda.setAttribute('title', celda.getAttribute('title') || celda.textContent);
+        }
+    });
+});
+
+// Función para actualizar automáticamente cada 5 minutos (opcional)
+setTimeout(function() {
+    window.location.reload();
+}, 300000); // 5 minutos
+</script>
+{% endblock %}

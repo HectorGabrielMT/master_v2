@@ -1,0 +1,1193 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MASTER - Cronograma</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'css/estiloGlobal.css' %}">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="icon" type="image/png" href="{% static 'img/icono.png' %}">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Poppins', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    
+    <style>
+        /* ESTILOS ESPECÍFICOS PARA LA TABLA (MANTENIDOS INTACTOS) */
+        
+        /* Scrollbar personalizado para tabla */
+        .table-container::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        
+        .table-container::-webkit-scrollbar-track {
+            background: #f1f5f9;
+            border-radius: 3px;
+        }
+        
+        .table-container::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 3px;
+        }
+        
+        .table-container::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+        
+        /* Estilos para selects con opciones de colores */
+        .option-green {
+            background-color: #059669 !important;
+            color: white !important;
+        }
+        
+        .option-red {
+            background-color: #dc2626 !important;
+            color: white !important;
+        }
+        
+        .option-yellow {
+            background-color: #d97706 !important;
+            color: white !important;
+        }
+        
+        .option-blue {
+            background-color: #2563eb !important;
+            color: white !important;
+        }
+        
+        .option-purple {
+            background-color: #7c3aed !important;
+            color: white !important;
+        }
+        
+        /* Estilos para las celdas sticky con sombra */
+        .sticky-cell {
+            box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+            background-color: #f8fafc !important;
+        }
+        
+        /* Estilos para selects sin bordes */
+        .select-sin-borde {
+            border: none !important;
+            background: transparent !important;
+            appearance: none;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            cursor: pointer;
+            padding: 0;
+            margin: 0;
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+            opacity: 0;
+            z-index: 10;
+        }
+        
+        .select-sin-borde:focus {
+            outline: none;
+            box-shadow: none;
+        }
+        
+        /* Estilos para inputs sin bordes */
+        .input-sin-borde {
+            border: none !important;
+            background: transparent !important;
+            outline: none;
+            box-shadow: none;
+            width: 100%;
+            padding: 0;
+            margin: 0;
+        }
+        
+        .input-sin-borde:focus {
+            border: none !important;
+            outline: none !important;
+            box-shadow: none !important;
+        }
+        
+        /* Contenedor para celda de mes con hover */
+        .celda-mes {
+            position: relative;
+            height: 100%;
+            min-height: 26px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        /* Hover effect para celdas */
+        .celda-mes:hover .hover-indicator {
+            opacity: 1;
+        }
+        
+        .hover-indicator {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            border: 1px dashed #cbd5e1;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s;
+            border-radius: 2px;
+        }
+        
+        /* Estilo para el display del código seleccionado */
+        .codigo-display {
+            cursor: pointer;
+            transition: all 0.2s;
+            border-radius: 2px;
+            padding: 2px 0;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 20px;
+            width: 100%;
+            color: white !important;
+            font-weight: bold !important;
+            font-size: 9px;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+        }
+        
+        .codigo-display:hover {
+            filter: brightness(1.1);
+            transform: scale(1.02);
+        }
+        
+        /* Dropdown personalizado para selects */
+        .dropdown-option {
+            padding: 5px 6px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            font-size: 10px;
+        }
+        
+        .dropdown-option:hover {
+            background-color: #f3f4f6;
+        }
+        
+        /* Estilos para columnas no editables */
+        .columna-no-editable {
+            background-color: #f8fafc !important;
+            cursor: default;
+        }
+        
+        /* Estilo para meses del pasado */
+        .mes-pasado {
+            background-color: #fffcefff !important;
+        }
+        
+        .mes-pasado .columna-no-editable {
+            background-color: #fffcf2ff !important;
+        }
+        
+        /* Estilo para meses futuros y presente */
+        .mes-futuro {
+            background-color: white !important;
+        }
+        
+        /* Estilo para celda de nota editable */
+        .celda-nota-editable {
+            background-color: white !important;
+        }
+        
+        .celda-nota-editable:focus {
+            background-color: #f0f9ff !important;
+        }
+        
+        /* Estilo para hover en celdas editables */
+        .celda-editable:hover {
+            background-color: #f0f9ff !important;
+        }
+        
+        /* Contenedor de tabla con bordes redondeados */
+        .contenedor-tabla {
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 4px -1px rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.06);
+        }
+        
+        /* Tamaños reducidos de columnas */
+        .col-unidad { width: 160px !important; min-width: 160px !important; }
+        .col-anio { width: 50px !important; min-width: 50px !important; }
+        .col-mes { width: 45px !important; min-width: 45px !important; }
+        .col-noti { width: 35px !important; min-width: 35px !important; }
+        .col-resp { width: 35px !important; min-width: 35px !important; }
+        .col-obs { width: 110px !important; min-width: 110px !important; }
+        .col-nota { width: 110px !important; min-width: 110px !important; }
+        
+        /* Colores para los cuadros de letras */
+        .letra-M { background: linear-gradient(135deg, #570000 0%, #7a0000 100%); } /* Operator Mantenimiento-Especialista */
+        .letra-E { background: linear-gradient(135deg, #ac0101 0%, #d60000 100%); } /* Técnico Cabecera-Operario Especialista */
+        .letra-O { background: linear-gradient(135deg, #d97706 0%, #f59e0b 100%); } /* Operario */
+        .letra-T { background: linear-gradient(135deg, #00bc13 0%, #00d91a 100%); } /* Técnico Cabecera */
+        .letra-I { background: linear-gradient(135deg, #006d0b 0%, #008a10 100%); } /* Inspección Reglamentaria */
+        .letra-P { background: linear-gradient(135deg, #0062ff 0%, #1e7bff 100%); } /* Prueba Reglamentaria */
+        .letra-C { background: linear-gradient(135deg, #0331c8 0%, #0a41f0 100%); } /* Control Obligatorio */
+        .letra-S { background: linear-gradient(135deg, #3f04ff 0%, #5c2bff 100%); } /* Sustitución Obligatorio */
+        
+        /* Altura fija para el contenedor de tabla */
+        .contenedor-tabla-scroll {
+            height: calc(100vh - 7rem);
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .tabla-scrollable {
+            flex: 1;
+            overflow: auto;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 font-sans antialiased text-slate-900">
+    {% include 'base/mensajes.html' %}
+    
+    <div class="flex h-screen overflow-hidden">
+        
+        <!-- MENÚ LATERAL (mismo ancho, elementos más pequeños) -->
+        <aside id="sidebar-principal" class="fixed inset-y-0 left-0 w-64 bg-white shadow-xl flex flex-col z-50 border-r border-indigo-50 h-full flex-shrink-0 transition-transform duration-300 transform -translate-x-full lg:relative lg:translate-x-0">
+            <div class="p-3 border-b border-indigo-50 relative">
+                
+                <div class="absolute left-3 top-3">
+                    <a href="{% url 'panel_principal' %}" class="text-slate-400 hover:text-indigo-600 transition-colors flex items-center">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                        </svg>
+                    </a>
+                </div>
+
+                <div class="absolute right-3 top-3 lg:hidden">
+                    <button onclick="alternarMenu()" class="p-1 text-slate-400 hover:text-red-500">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+
+                <div class="flex flex-col items-center mt-5">
+                    <a href="{% url 'panel_principal' %}" class="space-x-2">
+                        <div class="flex items-center gap-2 mb-3">
+                            <div class="flex-shrink-0">
+                                <img src="{% static 'img/logo.png' %}" 
+                                    alt="Logo MASTER" 
+                                    class="w-10 h-10 object-contain drop-shadow-sm transition-transform duration-300 hover:scale-110">
+                            </div>
+                            <h1 class="text-xl font-black text-indigo-600 tracking-tighter">MASTER</h1>
+                        </div>
+                    </a>
+                    
+                    <div class="w-full max-w-xs px-2">
+                        <div class="p-2 bg-white border border-indigo-50 rounded-lg shadow-sm">
+                            <div class="mb-1 text-center">
+                                <input type="text" readonly value="{{ ccpp.id_ccpp|default:'N/A' }}" 
+                                    class="input-invisible w-full bg-transparent text-xs font-bold text-slate-800 border-none p-0 focus:ring-0 cursor-default overflow-hidden text-ellipsis text-center">
+                            </div>
+                            
+                            <div class="mt-1 text-center">
+                                <input type="text" readonly value="{{ ccpp.nombre|default:'Sin nombre' }}" 
+                                    class="input-invisible w-full bg-transparent text-[11px] text-slate-600 border-none p-0 focus:ring-0 cursor-default overflow-hidden text-ellipsis italic text-center">
+                            </div>
+
+                            <div class="flex items-center justify-between mb-1 mt-2 border-t border-slate-50 pt-1">
+                                <label class="text-[10px] font-bold text-indigo-400 uppercase">Período</label>
+                                <span class="text-xs font-semibold text-slate-600">
+                                    {% if anos_disponibles and anos_disponibles|length > 0 %}
+                                        {% with first_year=anos_disponibles.0|slice:"-4:" last_year=anos_disponibles|last|slice:"-4:" %}
+                                            {{ first_year }} - {{ last_year }}
+                                        {% endwith %}
+                                    {% else %}
+                                        No disponible
+                                    {% endif %}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <nav class="flex-1 px-3 py-3 overflow-y-auto">
+                <!-- Acciones -->
+                <div class="mb-4">
+                    <p class="block text-xs font-bold text-slate-500 uppercase mb-1 ml-1">
+                        Acciones
+                    </p>
+                    
+                    <div class="space-y-1 px-1">
+                        <button type="submit" 
+                                form="cronograma-form"
+                                id="guardar-btn"
+                                class="w-full flex items-center px-3 py-2 text-slate-600 hover:bg-indigo-50 hover:text-indigo-700 rounded-lg transition-all duration-200 group">
+                            <svg class="w-4 h-4 mr-2 text-slate-400 group-hover:text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"></path>
+                            </svg>
+                            <span class="text-sm font-medium">Guardar</span>
+                        </button>
+
+                        <a href="{% url 'vista_panel_notificacion' ccpp.id %}" 
+                        class="w-full flex items-center px-3 py-2 text-slate-600 hover:bg-indigo-50 hover:text-indigo-700 rounded-lg transition-all duration-200 group">
+                            <svg class="w-4 h-4 mr-2 text-slate-400 group-hover:text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path>
+                            </svg>
+                            <span class="text-sm font-medium">Notificaciones</span>
+                        </a>
+                    </div>
+                </div>
+
+
+                
+                <!-- Filtros -->
+                <div class="mb-4">
+                    <p class="block text-xs font-bold text-slate-500 uppercase mb-1 ml-1">
+                        Filtros
+                    </p>
+                    
+                    <div class="space-y-2 px-1">
+                        <!-- Filtro por Capítulo -->
+                        <div>
+                            <label class="text-[10px] font-semibold text-indigo-400 uppercase ml-1">Capítulo</label>
+                            <select id="filter-capitulo-select"
+                                class="w-full px-2 py-1.5 rounded-lg border border-slate-200 focus:ring-1 focus:ring-indigo-100 outline-none text-xs">
+                                <option value="TODOS_CAPITULOS">Todos los Capítulos</option>
+                                {% for capitulo in capitulos_disponibles %}
+                                    <option value="{{ capitulo }}">{{ capitulo|truncatechars:20 }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        
+                        <!-- Filtro por Unidad -->
+                        <div>
+                            <label class="text-[10px] font-semibold text-indigo-400 uppercase ml-1">Unidad</label>
+                            <select id="filter-unidad-select"
+                                class="w-full px-2 py-1.5 rounded-lg border border-slate-200 focus:ring-1 focus:ring-indigo-100 outline-none text-xs">
+                                <option value="TODAS_UNIDADES">Todas las Unidades</option>
+                                {% for unidad in unidades_para_filtro %}
+                                    <option value="{{ unidad.nombre }}" 
+                                            data-capitulo="{{ unidad.capitulo }}">
+                                        {{ unidad.nombre|truncatechars:20 }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        
+                        <!-- Filtro por Año -->
+                        <div>
+                            <label class="text-[10px] font-semibold text-indigo-400 uppercase ml-1">Año</label>
+                            <select id="filter-anio-select" 
+                                class="w-full border rounded-lg px-2 py-1.5 focus:ring-1 focus:ring-indigo-100 focus:border-indigo-500 outline-none text-xs">
+                                <option value="TODOS_ANIOS">Todos los Años</option>
+                                {% for anio in anos_disponibles %} 
+                                    <option value="{{ anio }}"
+                                        {% if anio == anio_filtrado_por_defecto %}selected{% endif %}>
+                                        {{ anio }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        
+                        <!-- Filtro por Inspección -->
+                        <div>
+                            <label class="text-[10px] font-semibold text-indigo-400 uppercase ml-1">Inspección</label>
+                            <select id="filter-inspeccion-select" 
+                                class="w-full border rounded-lg px-2 py-1.5 focus:ring-1 focus:ring-indigo-100 focus:border-indigo-500 outline-none text-xs">
+                                <option value="TODOS_INSPECCION">Todas las Inspecciones</option>
+                                <option value="ANY_INSPECTION" class="font-bold text-green-700">Con Inspección</option>
+                                <option value="NO_INSPECTION" class="font-bold text-red-700">Sin Inspección</option>
+                                <option disabled class="text-gray-500">--- Por Código ---</option>
+                                {% for opcion in opciones_inspeccion %} 
+                                    <option value="{{ opcion.id }}" 
+                                            data-color="{{ opcion.color_inspeccion }}"
+                                            data-codigo="{{ opcion.codigo_inspeccion }}">
+                                        {{ opcion.codigo_inspeccion }} - {{ opcion.nombre_inspeccion }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        
+                        <!-- Botón Limpiar Filtros -->
+                        <button type="button" id="clear-filters-btn"
+                            class="w-full text-xs text-indigo-500 hover:text-indigo-700 font-medium py-1 transition-colors">
+                            Limpiar filtros
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Información del sistema -->
+                <div class="mb-4">
+                    <p class="block text-xs font-bold text-slate-500 uppercase mb-1 ml-1">
+                        Inspecciones
+                    </p>
+                    
+                    <div class="space-y-1 text-xs text-slate-600 px-1">
+                        <div class="flex items-start p-0.5 hover:bg-slate-50 rounded transition-colors">
+                            <div class="inline-flex items-center justify-center px-1 py-0.5 text-[8px] font-bold text-white rounded min-w-[16px] letra-M me-1 mt-0.5">M</div>
+                            <span class="font-medium">Operator Mantenimiento-Especialista</span>
+                        </div>
+
+                        <div class="flex items-start p-0.5 hover:bg-slate-50 rounded transition-colors">
+                            <div class="inline-flex items-center justify-center px-1 py-0.5 text-[8px] font-bold text-white rounded min-w-[16px] letra-E me-1 mt-0.5">E</div>
+                            <span class="font-medium">Técnico Cabecera-Operario Especialista</span>
+                        </div>
+
+                        <div class="flex items-start p-0.5 hover:bg-slate-50 rounded transition-colors">
+                            <div class="inline-flex items-center justify-center px-1 py-0.5 text-[8px] font-bold text-white rounded min-w-[16px] letra-O me-1 mt-0.5">O</div>
+                            <span class="font-medium">Operario</span>
+                        </div>
+
+                        <div class="flex items-start p-0.5 hover:bg-slate-50 rounded transition-colors">
+                            <div class="inline-flex items-center justify-center px-1 py-0.5 text-[8px] font-bold text-white rounded min-w-[16px] letra-T me-1 mt-0.5">T</div>
+                            <span class="font-medium">Técnico Cabecera</span>
+                        </div>
+
+                        <div class="flex items-start p-0.5 hover:bg-slate-50 rounded transition-colors">
+                            <div class="inline-flex items-center justify-center px-1 py-0.5 text-[8px] font-bold text-white rounded min-w-[16px] letra-I me-1 mt-0.5">I</div>
+                            <span class="font-medium">Inspección Reglamentaria</span>
+                        </div>
+
+                        <div class="flex items-start p-0.5 hover:bg-slate-50 rounded transition-colors">
+                            <div class="inline-flex items-center justify-center px-1 py-0.5 text-[8px] font-bold text-white rounded min-w-[16px] letra-P me-1 mt-0.5">P</div>
+                            <span class="font-medium">Prueba Reglamentaria</span>
+                        </div>
+
+                        <div class="flex items-start p-0.5 hover:bg-slate-50 rounded transition-colors">
+                            <div class="inline-flex items-center justify-center px-1 py-0.5 text-[8px] font-bold text-white rounded min-w-[16px] letra-C me-1 mt-0.5">C</div>
+                            <span class="font-medium">Control Obligatorio</span>
+                        </div>
+
+                        <div class="flex items-start p-0.5 hover:bg-slate-50 rounded transition-colors">
+                            <div class="inline-flex items-center justify-center px-1 py-0.5 text-[8px] font-bold text-white rounded min-w-[16px] letra-S me-1 mt-0.5">S</div>
+                            <span class="font-medium">Sustitución Obligatoria</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Última modificación -->
+                <div class="px-1">
+                    <div class="p-2 bg-indigo-50/50 border border-indigo-50 rounded-lg">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-[10px] font-bold text-indigo-400 uppercase mb-0.5">Última Mod.</p>
+                                <p class="text-xs font-semibold text-slate-700">
+                                    {% if ultima_modificacion %}
+                                        {{ ultima_modificacion|date:"d/m/Y" }}
+                                    {% else %}
+                                        No disponible
+                                    {% endif %}
+                                </p>
+                            </div>
+                            <svg class="w-3 h-3 text-indigo-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+            </nav>
+            
+            <!-- Información del usuario -->
+            <div class="p-2 border-t border-indigo-50">
+                <div class="flex items-center p-1.5 space-x-2 bg-indigo-50/50 rounded-md">
+                    <div class="w-6 h-6 rounded-full bg-indigo-600 flex items-center justify-center text-white font-bold text-[10px]">
+                        {% if user.first_name and user.last_name %}
+                            {{ user.first_name|slice:":1" }}{{ user.last_name|slice:":1" }}
+                        {% else %}
+                            {{ user.username|slice:":2"|upper }}
+                        {% endif %}
+                    </div>
+                    
+                    <div class="flex-1 min-w-0">
+                        <p class="text-xs font-semibold text-slate-900 truncate">
+                            {{ user.username }}
+                        </p>
+                        <p class="text-[11px] text-indigo-500 truncate">{{ user.email }}</p>
+                    </div>
+                </div>
+            </div>
+        </aside>
+        
+        <!-- Botón para abrir menú en móvil -->
+        <div id="fondo-oscuro" class="fixed inset-0 bg-black/50 z-40 hidden lg:hidden" onclick="alternarMenu()"></div>
+
+        <main class="flex-1 flex flex-col min-w-0 bg-slate-50 overflow-hidden">
+            <section class="flex-1 overflow-hidden p-2">
+                <div class="contenedor-tabla h-full flex flex-col">
+                    <form method="POST" action="" id="cronograma-form" class="flex flex-col h-full">
+                        {% csrf_token %}
+                        <input type="hidden" name="filter-anio" id="hidden-filter-anio" value="">
+                        <input type="hidden" name="filter-unidad" id="hidden-filter-unidad" value="">
+                        <input type="hidden" name="filter-inspeccion" id="hidden-filter-inspeccion" value="">
+                        <input type="hidden" name="filter-capitulo" id="hidden-filter-capitulo" value="">
+                        
+                        <!-- CONTENEDOR CON SCROLL -->
+                        <div class="table-container flex-1 overflow-auto">
+                            <div class="min-w-max h-full">
+                                <table class="min-w-full text-xs text-left border-collapse" id="data-table">
+                                    <thead class="text-xs text-gray-700 uppercase border-b-2 border-gray-400 bg-gray-50 sticky top-0 z-40">
+                                        <tr>
+                                            <!-- Columna Unidad/Capítulo (sticky izquierda) -->
+                                            <th scope="col" class="py-1.5 px-1.5 font-semibold text-left border-r border-gray-300 sticky left-0 z-40 bg-gray-50 sticky-cell col-unidad">
+                                                <div class="font-bold text-gray-900">Unidad</div>
+                                                <div class="text-[11px] text-gray-500">Capítulo</div>
+                                            </th>
+                                            
+                                            <!-- Columna Año (sticky izquierda) -->
+                                            <th scope="col" class="py-1.5 px-1 font-semibold text-center border-r border-gray-300 sticky left-[160px] z-40 bg-gray-50 sticky-cell col-anio">
+                                                <span class="text-gray-900">Año</span>
+                                            </th>
+                                            
+                                            <!-- Columnas de Meses -->
+                                            {% for titulo in meses_titulos %}
+                                            <th scope="col" class="py-1.5 px-1 font-semibold text-center border-r border-gray-300 bg-gray-50 col-mes">
+                                                <span class="text-gray-900">{{ titulo }}</span>
+                                            </th>
+                                            {% endfor %}
+                                            
+                                            <!-- Columna Noti -->
+                                            <th scope="col" class="py-1.5 px-1 font-semibold text-center border-r border-gray-300 sticky left-[210px] z-40 bg-gray-50 sticky-cell col-noti">
+                                                <span class="text-gray-900">Noti</span>
+                                            </th>
+                                            
+                                            <!-- Columna Resp -->
+                                            <th scope="col" class="py-1.5 px-1 font-semibold text-center border-r border-gray-300 sticky left-[245px] z-40 bg-gray-50 sticky-cell col-resp">
+                                                <span class="text-gray-900">Resp</span>
+                                            </th>
+                                            
+                                            <!-- Columna Observación (sticky izquierda) -->
+                                            <th scope="col" class="py-1.5 px-1.5 font-semibold text-left border-r border-gray-300 sticky left-[280px] z-40 bg-gray-50 sticky-cell col-obs">
+                                                <span class="text-gray-900">Observación</span>
+                                            </th>
+                                            
+                                            <!-- Columna Nota (sticky izquierda) -->
+                                            <th scope="col" class="py-1.5 px-1.5 font-semibold text-left sticky left-[390px] z-40 bg-gray-50 sticky-cell col-nota">
+                                                <span class="text-gray-900">Nota</span>
+                                            </th>
+                                        </tr>
+                                    </thead>
+                                    
+                                    <tbody id="data-table-body">
+                                        {% for nombre_unidad, anos_cronograma in cronograma_por_unidad.items %}
+                                            {% for item in anos_cronograma %}
+                                                {% with anio_actual=item.anio %}
+                                                <tr class="data-row {% if not forloop.last %}border-b border-gray-200{% endif %}"
+                                                    data-unidad="{{ nombre_unidad }}" 
+                                                    data-anio="{{ anio_actual }}"
+                                                    data-capitulo="{{ item.capitulo_unidad }}"> 
+                                                        
+                                                    <td class="group relative unidad-cell py-1.5 px-1.5 border-r border-gray-200 sticky left-0 z-30 columna-no-editable sticky-cell col-unidad"
+                                                        {% if forloop.first %}
+                                                            rowspan="{{ anos_cronograma|length }}"
+                                                        {% else %}
+                                                            style="display:none;"
+                                                        {% endif %}>
+                                                        
+                                                        <div class="pr-6 space-y-0.5"> <input type="text" 
+                                                                value="{{ nombre_unidad }}"
+                                                                class="input-sin-borde text-gray-900 font-semibold text-xs w-full bg-transparent"
+                                                                readonly
+                                                                style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                                                            
+                                                            <input type="text" 
+                                                                value="{{ item.capitulo_unidad }}"
+                                                                class="input-sin-borde text-gray-500 text-[11px] w-full bg-transparent"
+                                                                readonly
+                                                                style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                                                        </div>
+
+                                                        <div class="absolute right-1 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                                                            <a href="{% url 'vista_panel_fichas' item.unidad_id ccpp.pk %}" 
+                                                            class="flex items-center justify-center bg-blue-50 hover:bg-blue-100 text-blue-600 p-1 rounded text-xs shadow-sm border border-blue-200"
+                                                            title="Ver lista de fichas de la unidad">
+                                                                Fichas
+                                                            </a>
+                                                        </div>
+
+                                                    </td>
+                                                    
+                                                    <!-- Celda Año (sticky izquierda) - NO EDITABLE -->
+                                                    <td class="anio-cell py-1.5 px-1 border-r border-gray-200 sticky left-[160px] z-30 columna-no-editable sticky-cell col-anio">
+                                                        <input type="text" 
+                                                            value="{{ anio_actual }}"
+                                                            class="input-sin-borde text-gray-600 text-xs text-center"
+                                                            readonly
+                                                            style="white-space: nowrap;">
+                                                    </td>
+                                                        
+                                                    <!-- Celdas de Meses - EDITABLES -->
+                                                    {% for mes in item.meses_con_valores %}
+                                                        {% with cronograma_pk=item.registro_cronograma_pk mes_numero=forloop.counter %}
+                                                        {% with es_mes_pasado=mes.es_pasado %}
+                                                        <td class="py-1.5 px-1 relative col-mes group border-r border-gray-200 {% if es_mes_pasado %}mes-pasado{% else %}mes-futuro{% endif %} celda-editable">
+                                                            <div class="celda-mes">
+                                                                <!-- Indicador de hover -->
+                                                                <div class="hover-indicator"></div>
+                                                            
+                                                                <!-- Botón solo aparece si hay inspección guardada -->
+                                                                {% if mes.valor_select_pk %}
+                                                                <a href="{% url 'gestionar_notificacion' item.registro_cronograma_pk mes.nombre|lower %}"
+                                                                class="absolute -top-0.5 -right-0.5 z-20 bg-gradient-to-br from-gray-800 to-gray-900 hover:from-gray-700 hover:to-gray-800 text-white p-0.5 rounded-full text-[9px] transition-all duration-200 ease-in-out shadow hover:shadow-sm hover:scale-110 transform border border-white/20 hidden group-hover:flex items-center justify-center w-4 h-4"
+                                                                    title="Notificar inspeccion">
+                                                                    <i class="fas fa-bell"></i>
+                                                                </a>
+                                                                {% endif %}
+                                                                
+                                                                <!-- Display del código -->
+                                                                <span id="code-display-{{ mes.nombre }}_{{ cronograma_pk }}"
+                                                                    data-id="{{ mes.nombre }}_{{ cronograma_pk }}"
+                                                                    class="codigo-display"
+                                                                    style="background-color: {{ mes.color_inicial }};
+                                                                            display: {% if mes.valor_select_pk %}flex{% else %}none{% endif %};">
+                                                                    {{ mes.codigo_inspeccion_actual|default:'--' }}
+                                                                </span>
+                                                                <!-- Select transparente sobre toda la celda -->
+                                                                <select name="{{ mes.nombre }}_{{ cronograma_pk }}" 
+                                                                        id="select-{{ mes.nombre }}_{{ cronograma_pk }}"
+                                                                        data-code-target="code-display-{{ mes.nombre }}_{{ cronograma_pk }}"
+                                                                        data-mes-numero="{{ mes_numero }}"
+                                                                        data-anio="{{ anio_actual }}"
+                                                                        class="select-sin-borde">
+                                                                    <option value=""></option>
+                                                                    {% for opcion in opciones_inspeccion %}
+                                                                        <option value="{{ opcion.id }}" 
+                                                                                data-color="{{ opcion.color_inspeccion }}"
+                                                                                data-nombre="{{ opcion.nombre_inspeccion }}"
+                                                                                data-codigo="{{ opcion.codigo_inspeccion }}"
+                                                                                {% if opcion.id|stringformat:"s" == mes.valor_select_pk %}selected{% endif %}>
+                                                                            {{ opcion.codigo_inspeccion }} - {{ opcion.nombre_inspeccion }}
+                                                                        </option>
+                                                                    {% endfor %}
+                                                                </select>
+                                                            </div>
+                                                        </td>
+                                                        {% endwith %}
+                                                        {% endwith %}
+                                                    {% endfor %}
+                                                    
+                                                    <!-- Celda Noti (sticky izquierda) - NO EDITABLE -->
+                                                    <td class="noti-cell py-1.5 px-1 text-center border-r border-gray-200 sticky left-[210px] z-30 columna-no-editable sticky-cell col-noti">
+                                                        {% if item.total_noti > 0 %}
+                                                        <div class="inline-flex items-center justify-center w-5 h-5 mx-auto rounded-full bg-green-100 text-green-800 text-xs font-bold border border-green-200"
+                                                            title="Total notificaciones: {{ item.total_noti }}">
+                                                            {{ item.total_noti }}
+                                                        </div>
+                                                        {% else %}
+                                                        <div class="w-5 h-5 mx-auto"></div>
+                                                        {% endif %}
+                                                    </td>
+
+                                                    <!-- Celda Resp (sticky izquierda) - NO EDITABLE -->
+                                                    <td class="resp-cell py-1.5 px-1 text-center border-r border-gray-200 sticky left-[245px] z-30 columna-no-editable sticky-cell col-resp">
+                                                        {% if item.total_resp > 0 %}
+                                                        <div class="inline-flex items-center justify-center w-5 h-5 mx-auto rounded-full bg-red-100 text-red-800 text-xs font-bold border border-red-200"
+                                                            title="Total respuestas: {{ item.total_resp }}">
+                                                            {{ item.total_resp }}
+                                                        </div>
+                                                        {% else %}
+                                                        <div class="w-5 h-5 mx-auto"></div>
+                                                        {% endif %}
+                                                    </td>
+                                                    
+                                                    <!-- Celda Observación (sticky izquierda) - NO EDITABLE -->
+                                                    <td class="observacion-cell py-1.5 px-1.5 border-r border-gray-200 sticky left-[280px] z-30 columna-no-editable sticky-cell col-obs">
+                                                        <input type="text" 
+                                                            value="{{ item.observacion_unidad|default:'-' }}"
+                                                            class="input-sin-borde text-gray-600 text-xs"
+                                                            readonly
+                                                            style="white-space: nowrap; overflow-x: auto;">
+                                                    </td>
+                                                    
+                                                    <!-- Celda Nota (sticky izquierda) - EDITABLE -->
+                                                    <td class="nota-cell py-1.5 px-1.5 sticky left-[390px] z-30 celda-nota-editable sticky-cell col-nota">
+                                                        <input type="text" 
+                                                            name="nota_{{ item.registro_cronograma_pk }}"
+                                                            id="nota-{{ item.registro_cronograma_pk }}"
+                                                            value="{{ item.nota_actual }}"
+                                                            class="input-sin-borde text-gray-800 text-xs placeholder-gray-400 celda-editable"
+                                                            placeholder="Nota..."
+                                                            autocomplete="off"
+                                                            style="white-space: nowrap; overflow-x: auto;">
+                                                    </td>
+                                                </tr>
+                                                {% endwith %}
+                                            {% endfor %}
+                                            {% if not forloop.last %}
+                                            <tr class="filter-separator h-1.5 bg-indigo-100 border-b-2 border-gray-100 unidad-separator" 
+                                                data-unidad="{{ nombre_unidad }}">
+                                                <td colspan="{{ meses_titulos|length|add:6 }}" class="p-0"></td>
+                                            </tr>
+                                            {% endif %}
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- SCRIPT DE FUNCIONALIDAD (MANTENIDO INTACTO) -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            
+            // **Constantes JavaScript**
+            const TODOS_INSPECCION = 'TODOS_INSPECCION';
+            const TODAS_UNIDADES = 'TODAS_UNIDADES';
+            const TODOS_ANIOS = 'TODOS_ANIOS';
+            const TODOS_CAPITULOS = 'TODOS_CAPITULOS';
+            
+            // --- Elementos DOM ---
+            const filterCapituloSelect = document.getElementById('filter-capitulo-select');
+            const filterUnidadSelect = document.getElementById('filter-unidad-select'); 
+            const filterAnioSelect = document.getElementById('filter-anio-select'); 
+            const filterInspeccionSelect = document.getElementById('filter-inspeccion-select');
+            const hiddenFilterAnio = document.getElementById('hidden-filter-anio'); 
+            const hiddenFilterUnidad = document.getElementById('hidden-filter-unidad'); 
+            const hiddenFilterInspeccion = document.getElementById('hidden-filter-inspeccion'); 
+            const hiddenFilterCapitulo = document.getElementById('hidden-filter-capitulo');
+            const dataRows = document.querySelectorAll('.data-row');
+            const separatorRows = document.querySelectorAll('.filter-separator');
+            const clearFiltersBtn = document.getElementById('clear-filters-btn');
+
+            // --- Lógica de Selects Híbridos ---
+            const selectInputs = document.querySelectorAll('.select-sin-borde');
+            const codeDisplays = document.querySelectorAll('.codigo-display');
+
+            // Obtener fecha actual
+            const fechaActual = new Date();
+            const mesActual = fechaActual.getMonth() + 1; // Los meses en JS van de 0-11
+            const anioActual = fechaActual.getFullYear();
+
+            // Función para extraer el año calendario del formato "X - YYYY"
+            function extraerAnioCalendario(anioFormateado) {
+                if (!anioFormateado) return null;
+                
+                if (typeof anioFormateado === 'string' && anioFormateado.includes('-')) {
+                    const partes = anioFormateado.split('-');
+                    if (partes.length > 1) {
+                        const anioCalendario = parseInt(partes[1].trim());
+                        return isNaN(anioCalendario) ? null : anioCalendario;
+                    }
+                }
+                
+                // Si no está en el formato esperado, intentar parsear directamente
+                const anio = parseInt(anioFormateado);
+                return isNaN(anio) ? null : anio;
+            }
+
+            // Función para determinar si una celda representa una fecha pasada
+            function esFechaPasada(mesNumero, anioFormateado) {
+                const anioCalendario = extraerAnioCalendario(anioFormateado);
+                const mesInt = parseInt(mesNumero);
+                
+                if (!anioCalendario || !mesInt) return false;
+                
+                // Si el año es menor al actual, es pasado
+                if (anioCalendario < anioActual) {
+                    return true;
+                }
+                
+                // Si el año es el actual pero el mes es menor al actual, es pasado
+                if (anioCalendario === anioActual && mesInt < mesActual) {
+                    return true;
+                }
+                
+                // Si es el mes actual o futuro
+                return false;
+            }
+
+            // Función para aplicar colores según fecha (pasado/actual/futuro)
+            function aplicarColoresSegunFecha() {
+                selectInputs.forEach(select => {
+                    const mesNumero = select.getAttribute('data-mes-numero');
+                    const anioFormateado = select.getAttribute('data-anio');
+                    const celda = select.closest('td');
+                    
+                    if (mesNumero && anioFormateado && celda) {
+                        // Limpiar clases anteriores
+                        celda.classList.remove('mes-pasado', 'mes-futuro');
+                        
+                        // Determinar si es fecha pasada
+                        if (esFechaPasada(mesNumero, anioFormateado)) {
+                            celda.classList.add('mes-pasado');
+                            // Asegurar el color de fondo
+                            celda.style.backgroundColor = '#fffcef';
+                        } else {
+                            celda.classList.add('mes-futuro');
+                            // Asegurar fondo blanco
+                            celda.style.backgroundColor = '';
+                        }
+                    }
+                });
+            }
+
+            // Función para actualizar el display del código
+            function updateCodeDisplay(selectElement) {
+                const selectedOption = selectElement.options[selectElement.selectedIndex];
+                const selectedCodeToDisplay = selectedOption.getAttribute('data-codigo');
+                const selectedColor = selectedOption.getAttribute('data-color');
+                const targetId = selectElement.getAttribute('data-code-target');
+                const codeDisplay = document.getElementById(targetId);
+                const celda = selectElement.closest('td');
+                
+                if (!codeDisplay) return;
+
+                if (selectedCodeToDisplay && selectedCodeToDisplay.trim() !== '') { 
+                    // Aplicar color y texto
+                    codeDisplay.style.backgroundColor = selectedColor || '#4f46e5';
+                    codeDisplay.textContent = selectedCodeToDisplay || '--'; 
+                    codeDisplay.style.display = 'flex';
+                    
+                    // Asegurar que el texto sea blanco y en negrita
+                    codeDisplay.style.color = 'white';
+                    codeDisplay.style.fontWeight = 'bold';
+                    
+                    // Guardar el estado actual
+                    selectElement.setAttribute('data-current-color', selectedColor || '');
+                    selectElement.setAttribute('data-current-code', selectedCodeToDisplay || '');
+                } else {
+                    // Si no hay valor seleccionado, ocultar el display
+                    codeDisplay.style.display = 'none';
+                }
+                
+                // Reaplicar color de fondo según fecha después de cambiar la inspección
+                if (celda) {
+                    const mesNumero = selectElement.getAttribute('data-mes-numero');
+                    const anioFormateado = selectElement.getAttribute('data-anio');
+                    
+                    if (mesNumero && anioFormateado) {
+                        // Limpiar clases
+                        celda.classList.remove('mes-pasado', 'mes-futuro');
+                        
+                        // Aplicar clase según fecha
+                        if (esFechaPasada(mesNumero, anioFormateado)) {
+                            celda.classList.add('mes-pasado');
+                            celda.style.backgroundColor = '#fffcef';
+                        } else {
+                            celda.classList.add('mes-futuro');
+                            celda.style.backgroundColor = '';
+                        }
+                    }
+                }
+            }
+
+            // Inicializar selects
+            selectInputs.forEach(selectElement => {
+                // Guardar estado inicial
+                const selectedOption = selectElement.options[selectElement.selectedIndex];
+                const initialColor = selectedOption.getAttribute('data-color');
+                const initialCode = selectedOption.getAttribute('data-codigo');
+                
+                if (initialColor && initialCode) {
+                    selectElement.setAttribute('data-current-color', initialColor);
+                    selectElement.setAttribute('data-current-code', initialCode);
+                }
+
+                // Inicializar display
+                updateCodeDisplay(selectElement);
+
+                // Evento cambio de valor
+                selectElement.addEventListener('change', function() {
+                    updateCodeDisplay(this);
+                });
+            });
+            
+            // Aplicar colores según fecha al cargar la página
+            aplicarColoresSegunFecha();
+            
+            // Evento click en los displays de código
+            codeDisplays.forEach(codeDisplay => {
+                codeDisplay.addEventListener('click', function() {
+                    const targetId = this.getAttribute('data-id');
+                    const selectElement = document.getElementById(`select-${targetId}`);
+                    
+                    if (selectElement) {
+                        // Simular click en el select para abrir el dropdown
+                        selectElement.focus();
+                        selectElement.click();
+                    }
+                });
+            });
+
+            // Mejorar la experiencia de los inputs de nota
+            const notaInputs = document.querySelectorAll('input[name^="nota_"]');
+            notaInputs.forEach(input => {
+                input.addEventListener('focus', function() {
+                    this.style.backgroundColor = '#f0f9ff';
+                    this.style.cursor = 'text';
+                    this.closest('.celda-nota-editable').style.backgroundColor = '#f0f9ff';
+                });
+                
+                input.addEventListener('blur', function() {
+                    this.style.backgroundColor = 'transparent';
+                    this.closest('.celda-nota-editable').style.backgroundColor = '';
+                });
+                
+                // Agregar indicador visual de que es editable
+                input.addEventListener('mouseenter', function() {
+                    this.closest('.celda-nota-editable').style.backgroundColor = '#f0f9ff';
+                });
+                
+                input.addEventListener('mouseleave', function() {
+                    if (document.activeElement !== this) {
+                        this.closest('.celda-nota-editable').style.backgroundColor = '';
+                    }
+                });
+            });
+
+            // Agregar hover a celdas editables de meses
+            const celdasEditable = document.querySelectorAll('.celda-editable');
+            celdasEditable.forEach(celda => {
+                celda.addEventListener('mouseenter', function() {
+                    if (!this.classList.contains('columna-no-editable')) {
+                        this.style.backgroundColor = '#f0f9ff';
+                    }
+                });
+                
+                celda.addEventListener('mouseleave', function() {
+                    if (!this.classList.contains('columna-no-editable')) {
+                        // Restaurar color según si es pasado o futuro
+                        if (this.classList.contains('mes-pasado')) {
+                            this.style.backgroundColor = '#fffcef';
+                        } else {
+                            this.style.backgroundColor = '';
+                        }
+                    }
+                });
+            });
+
+            // --- Lógica de Filtrado Dinámico ---
+
+            function applyFilters() {
+                const selectedCapitulo = filterCapituloSelect.value;
+                const selectedUnidad = filterUnidadSelect.value;
+                const selectedAnio = filterAnioSelect.value; 
+                const selectedInspection = filterInspeccionSelect.value; 
+                
+                // Sincronizar campos ocultos para POST
+                hiddenFilterAnio.value = selectedAnio;
+                hiddenFilterUnidad.value = selectedUnidad;
+                hiddenFilterInspeccion.value = selectedInspection;
+                hiddenFilterCapitulo.value = selectedCapitulo;
+                
+                // Objeto para rastrear unidades y sus filas visibles
+                const unitsData = {};
+                const allUnitsInOrder = []; // Todas las unidades en el orden original del HTML
+                
+                // Primero, obtener todas las unidades únicas en el orden en que aparecen
+                dataRows.forEach(row => {
+                    const rowUnidad = row.getAttribute('data-unidad');
+                    if (!allUnitsInOrder.includes(rowUnidad)) {
+                        allUnitsInOrder.push(rowUnidad);
+                    }
+                    
+                    // Inicializar datos de unidad si no existe
+                    if (!unitsData[rowUnidad]) {
+                        unitsData[rowUnidad] = {
+                            rows: [],
+                            visibleCount: 0,
+                            isVisible: false,
+                            firstVisibleRow: null
+                        };
+                    }
+                });
+                
+                // Ahora procesar cada fila
+                dataRows.forEach(row => {
+                    const rowUnidad = row.getAttribute('data-unidad');
+                    const rowAnio = row.getAttribute('data-anio');
+                    const rowCapitulo = row.getAttribute('data-capitulo');
+                    const unidadCell = row.querySelector('.unidad-cell');
+                    
+                    // Resetear celda de Unidad
+                    if (unidadCell) {
+                        unidadCell.style.display = 'none';
+                        unidadCell.removeAttribute('rowspan');
+                    }
+                    
+                    // Agregar fila a los datos de la unidad
+                    unitsData[rowUnidad].rows.push(row);
+                    
+                    // Comprobar condiciones de filtrado
+                    const matchCapitulo = selectedCapitulo === TODOS_CAPITULOS || rowCapitulo === selectedCapitulo;
+                    const matchUnidad = selectedUnidad === TODAS_UNIDADES || rowUnidad === selectedUnidad;
+                    const matchAnio = selectedAnio === TODOS_ANIOS || rowAnio === selectedAnio; 
+                    
+                    let matchesInspection = true; 
+                    
+                    if (selectedInspection !== TODOS_INSPECCION) {
+                        const monthSelects = row.querySelectorAll('.select-sin-borde');
+                        let rowHasAnyInspection = false;
+                        let rowMatchesSpecificInspection = false;
+
+                        monthSelects.forEach(select => {
+                            const cellValue = select.value; 
+                            if (cellValue) {
+                                rowHasAnyInspection = true;
+                            }
+                            if (cellValue === selectedInspection) {
+                                rowMatchesSpecificInspection = true;
+                            }
+                        });
+
+                        if (selectedInspection === "ANY_INSPECTION") {
+                            matchesInspection = rowHasAnyInspection;
+                        } else if (selectedInspection === "NO_INSPECTION") {
+                            matchesInspection = !rowHasAnyInspection;
+                        } else {
+                            matchesInspection = rowMatchesSpecificInspection;
+                        }
+                    }
+                    
+                    // Determinar si la fila es visible
+                    const isRowVisible = matchCapitulo && matchUnidad && matchAnio && matchesInspection;
+                    
+                    if (isRowVisible) {
+                        row.style.display = '';
+                        unitsData[rowUnidad].visibleCount++;
+                        unitsData[rowUnidad].isVisible = true;
+                        
+                        // Marcar primera fila visible para rowspan
+                        if (!unitsData[rowUnidad].firstVisibleRow) {
+                            unitsData[rowUnidad].firstVisibleRow = row;
+                        }
+                    } else {
+                        row.style.display = 'none';
+                    }
+                });
+                
+                // Aplicar rowspan a las celdas de unidad
+                for (const unidad in unitsData) {
+                    const data = unitsData[unidad];
+                    if (data.firstVisibleRow && data.visibleCount > 0) {
+                        const unidadCell = data.firstVisibleRow.querySelector('.unidad-cell');
+                        if (unidadCell) {
+                            unidadCell.setAttribute('rowspan', data.visibleCount);
+                            unidadCell.style.display = '';
+                        }
+                    }
+                }
+                
+                // Ahora determinar qué separadores mostrar
+                // Necesitamos mapear separadores a unidades
+                const separatorsByUnit = {};
+                
+                // Asignar cada separador a la unidad que le precede
+                separatorRows.forEach((separator, index) => {
+                    // Encontrar la unidad que corresponde a este índice de separador
+                    if (index < allUnitsInOrder.length) {
+                        const unidad = allUnitsInOrder[index];
+                        separatorsByUnit[unidad] = separator;
+                    }
+                });
+                
+                // Determinar qué separadores mostrar
+                // Mostrar separador después de una unidad si:
+                // 1. La unidad actual es visible
+                // 2. Hay una unidad siguiente en la lista
+                // 3. La unidad siguiente es visible
+                for (let i = 0; i < allUnitsInOrder.length; i++) {
+                    const currentUnit = allUnitsInOrder[i];
+                    const separator = separatorsByUnit[currentUnit];
+                    
+                    if (!separator) continue;
+                    
+                    let showSeparator = false;
+                    
+                    // Verificar si la unidad actual es visible
+                    const currentUnitVisible = unitsData[currentUnit]?.isVisible || false;
+                    
+                    if (currentUnitVisible) {
+                        // Buscar la siguiente unidad visible
+                        let nextVisibleUnit = null;
+                        for (let j = i + 1; j < allUnitsInOrder.length; j++) {
+                            const nextUnit = allUnitsInOrder[j];
+                            if (unitsData[nextUnit]?.isVisible) {
+                                nextVisibleUnit = nextUnit;
+                                break;
+                            }
+                        }
+                        
+                        // Mostrar separador si hay una siguiente unidad visible
+                        showSeparator = nextVisibleUnit !== null;
+                    }
+                    
+                    separator.style.display = showSeparator ? '' : 'none';
+                }
+            }
+
+            
+            function clearFilters() {
+                filterCapituloSelect.value = TODOS_CAPITULOS;
+                filterUnidadSelect.value = TODAS_UNIDADES;
+                filterAnioSelect.value = TODOS_ANIOS;
+                filterInspeccionSelect.value = TODOS_INSPECCION; 
+                applyFilters();
+            }
+
+            // --- Eventos ---
+            filterCapituloSelect.addEventListener('change', applyFilters);
+            filterUnidadSelect.addEventListener('change', applyFilters);
+            filterAnioSelect.addEventListener('change', applyFilters);
+            filterInspeccionSelect.addEventListener('change', applyFilters);
+            clearFiltersBtn.addEventListener('click', clearFilters);
+            
+            // Aplicar filtros iniciales
+            applyFilters();
+            
+            // Manejar submit del formulario para mostrar feedback
+            const form = document.querySelector('form');
+            if (form) {
+                form.addEventListener('submit', function(e) {
+                    const submitBtn = this.querySelector('button[type="submit"]');
+                    if (submitBtn) {
+                        const originalText = submitBtn.innerHTML;
+                        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i>Guardando...';
+                        submitBtn.disabled = true;
+                        
+                        // Restaurar después de 5 segundos (por si hay error)
+                        setTimeout(() => {
+                            submitBtn.innerHTML = originalText;
+                            submitBtn.disabled = false;
+                        }, 5000);
+                    }
+                });
+            }
+            
+            // Función para alternar menú en móvil
+            window.alternarMenu = function() {
+                const menuLateral = document.getElementById('sidebar-principal');
+                const fondoOscuro = document.getElementById('fondo-oscuro');
+                
+                // Si el menú tiene la clase de estar movido a la izquierda (-translate-x-full)
+                if (menuLateral.classList.contains('-translate-x-full')) {
+                    // Abrir menú
+                    menuLateral.classList.remove('-translate-x-full');
+                    menuLateral.classList.add('translate-x-0');
+                    fondoOscuro.classList.remove('hidden');
+                } else {
+                    // Cerrar menú
+                    menuLateral.classList.remove('translate-x-0');
+                    menuLateral.classList.add('-translate-x-full');
+                    fondoOscuro.classList.add('hidden');
+                }
+            };
+        });
+    </script>
+</body>
+</html>

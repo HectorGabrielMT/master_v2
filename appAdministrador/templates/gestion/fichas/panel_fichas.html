@@ -1,0 +1,380 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MASTER - Panel de Fichas</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'css/estiloGlobal.css' %}">
+    <link rel="icon" type="image/png" href="{% static 'img/icono.png' %}">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Poppins', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-slate-50 font-sans antialiased text-slate-900">
+{% include 'base/mensajes.html' %}
+    <div class="flex h-screen overflow-hidden">
+        
+        <aside id="sidebar-principal" class="fixed inset-y-0 left-0 w-64 bg-white shadow-xl flex flex-col z-50 border-r border-indigo-50 h-full flex-shrink-0 transition-transform duration-300 transform -translate-x-full lg:relative lg:translate-x-0">
+            <div class="p-4 border-b border-indigo-50 relative">
+                
+                <div class="absolute left-4 top-5">
+                    <a href="{% url 'panel_principal' %}" class="text-slate-400 hover:text-indigo-600 transition-colors flex items-center">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                        </svg>
+                    </a>
+                </div>
+
+                <div class="flex flex-col items-center">
+                    <a href="{% url 'panel_principal' %}" class="space-x-3">
+                        <div class="flex items-center gap-3 mb-4">
+                            <div class="flex-shrink-0">
+                                <img src="{% static 'img/logo.png' %}" 
+                                    alt="Logo MASTER" 
+                                    class="w-10 h-10 object-contain drop-shadow-sm transition-transform duration-300 hover:scale-110">
+                            </div>
+                            <h1 class="text-xl font-black text-indigo-600 tracking-tighter">MASTER</h1>
+                        </div>
+                    </a>
+                </div>
+
+                <div class="absolute right-4 top-5 lg:hidden">
+                    <button onclick="alternarMenu()" class="p-2 text-slate-400 hover:text-red-500">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+
+            </div>
+
+            <nav class="flex-1 px-3 py-4 overflow-y-auto scrollIndependiente">
+                <div class="mb-3">
+                    <p class="block text-xs font-bold text-slate-500 uppercase mb-1 ml-1">
+                        Acciones
+                    </p>
+                    
+                    <div class="space-y-1">
+                        <a href="{% url 'nueva_ficha' unidad.pk ccpp.id %}" class="w-full flex items-center px-3 py-2.5 text-slate-600 hover:bg-indigo-50 hover:text-indigo-700 rounded-lg transition-all duration-200 group">
+                            <svg class="w-4 h-4 mr-2 text-slate-400 group-hover:text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                            </svg>
+                            <span class="text-xs font-medium">Nueva ficha</span>
+                        </a>
+                    </div>
+                </div>
+
+                <div class="mb-3 mt-6">
+                    <div class="flex items-center justify-between mb-1">
+                        <p class="block text-xs font-bold text-slate-500 uppercase ml-1">
+                            Filtros
+                        </p>
+                        
+                        <button onclick="limpiarFiltros()" 
+                                type="button" 
+                                title="Limpiar filtros"
+                                class="p-1.5 text-slate-400 hover:text-rose-500 hover:bg-rose-50 rounded-full transition-colors duration-200 focus:outline-none"
+                                aria-label="Limpiar filtros">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                                    d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                                    d="M15 13l4 4m0-4l-4 4" />
+                            </svg>
+                        </button>
+                    </div>
+                    
+                    <div class="space-y-3 px-1">
+                        <div>
+                            <label class="text-[10px] font-semibold text-slate-400 uppercase ml-1">Título</label>
+                            <div class="relative">
+                                <input type="text" id="filtro-titulo" placeholder="Buscar por título..." 
+                                    class="w-full px-3 py-2 rounded-lg border border-slate-200 focus:ring-2 focus:ring-indigo-100 outline-none text-xs pl-9">
+                                <div class="absolute inset-y-0 left-0 flex items-center pl-2.5">
+                                    <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                                    </svg>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="text-[10px] font-semibold text-slate-400 uppercase ml-1">Mín. Controles</label>
+                            <input type="number" id="filtro-controles" placeholder="Ej: 5" 
+                                class="w-full px-3 py-2 rounded-lg border border-slate-200 focus:ring-2 focus:ring-indigo-100 outline-none text-xs">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mb-3 mt-6">
+                    <p class="block text-xs font-bold text-slate-500 uppercase mb-1 ml-1">Unidad</p>
+                    <div class="px-1">
+                        <div class="p-3 rounded-lg bg-indigo-50/30 border border-indigo-100/50 space-y-2">
+                            <div class="space-y-1">
+                                <input type="text" value="{{ unidad.capitulo }}" readonly 
+                                    class="input-invisible w-full bg-transparent border-none p-0 text-xs text-slate-800 leading-tight focus:ring-0 cursor-default"
+                                    title="{{ unidad.capitulo }}">
+                                <input type="text" value="{{ unidad.unidad }}" readonly 
+                                    class="input-invisible w-full bg-transparent border-none p-0 text-xs font-bold text-slate-800 leading-tight focus:ring-0 cursor-default"
+                                    title="{{ unidad.unidad }}">
+                                <input type="text" value="{{ unidad.descripcion }}" readonly 
+                                    class="input-invisible w-full bg-transparent border-none p-0 text-[11px] text-slate-500 leading-snug italic focus:ring-0 cursor-default"
+                                    title="{{ unidad.descripcion }}">
+                            </div>
+
+                            <hr class="border-indigo-100/50">
+
+                            <div class="grid grid-cols-2 gap-1.5">
+                                <div class="flex flex-col min-w-0">
+                                    <span class="text-[9px] font-bold text-slate-400 uppercase">Documento (DOC)</span>
+                                    <input type="text" value="{{ unidad.doc }}" readonly 
+                                        class="input-invisible w-full bg-transparent border-none p-0 text-[10px] font-semibold text-indigo-700 focus:ring-0 cursor-default"
+                                        title="{{ unidad.doc }}">
+                                </div>
+
+                                <div class="flex flex-col min-w-0">
+                                    <span class="input-invisible text-[9px] font-bold text-slate-400 uppercase">Observación</span>
+                                    <input type="text" value="{{ unidad.observacion|default:'Sin obs.' }}" readonly 
+                                        class="input-invisible w-full bg-transparent border-none p-0 text-[10px] font-medium text-slate-600 focus:ring-0 cursor-default"
+                                        title="{{ unidad.observacion }}">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </nav>
+
+            <div class="p-2 border-t border-indigo-50">
+                <div class="flex items-center p-1.5 space-x-2 bg-indigo-50/50 rounded">
+                    <div class="w-6 h-6 flex-shrink-0 rounded-full bg-indigo-600 flex items-center justify-center text-white font-bold text-[9px]">
+                        {% if user.first_name and user.last_name %}
+                            {{ user.first_name|slice:":1" }}{{ user.last_name|slice:":1" }}
+                        {% else %}
+                            {{ user.username|slice:":2"|upper }}
+                        {% endif %}
+                    </div>
+                    
+                    <div class="flex-1 min-w-0 leading-tight">
+                        <input 
+                            type="text" 
+                            value="{{ user.username }}" 
+                            readonly 
+                            class="input-invisible w-full bg-transparent border-none p-0 text-xs font-bold text-slate-900 focus:ring-0 cursor-default truncate"
+                            title="{{ user.username }}"
+                        >
+                        
+                        <input 
+                            type="email" 
+                            value="{{ user.email }}" 
+                            readonly 
+                            class="input-invisible w-full bg-transparent border-none p-0 text-[10px] text-indigo-500 focus:ring-0 cursor-default truncate block -mt-1"
+                            title="{{ user.email }}"
+                        >
+                    </div>
+                </div>
+            </div>
+
+        </aside>
+
+        <main class="flex-1 flex flex-col min-w-0 bg-slate-50">
+            <header class="h-16 bg-white border-b border-slate-100 flex items-center px-4 sm:px-6 justify-between flex-shrink-0">
+                <div class="flex items-center gap-4">
+                    <button type="button" onclick="alternarMenu()" 
+                            class="lg:hidden p-2 rounded-lg text-slate-500 hover:bg-slate-50 hover:text-indigo-600 transition-all border border-slate-100 shadow-sm">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 6h16M4 12h16M4 18h16"></path>
+                        </svg>
+                    </button>
+
+                    <div class="flex items-baseline gap-3">
+                        <h1 class="text-lg font-bold text-slate-800 tracking-tight leading-none">
+                            Panel de Fichas
+                        </h1>
+
+                        <nav class="hidden md:flex items-center text-xs font-medium">
+                            <span class="mx-1.5 text-slate-300">|</span>
+                            <div class="flex items-center gap-1.5">
+                                <a href="{% url 'panel_principal' %}" class="text-slate-400 hover:text-indigo-600 transition-colors">Inicio</a>
+
+                                <svg class="w-3.5 h-3.5 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                                </svg>
+
+                                <a href="{% url 'gestion_ccpp' ccpp.id %}" class="text-slate-400 hover:text-indigo-600 transition-colors">Cronograma</a>
+
+                                <svg class="w-3.5 h-3.5 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                                </svg>
+
+                                <a href="{% url 'vista_panel_fichas' unidad.pk ccpp.pk %}" class="text-indigo-600 font-semibold">Fichas</a>
+                            </div>
+                        </nav>
+                    </div>
+                </div>
+            </header>
+
+            
+            <section class="flex-1 overflow-hidden p-3 sm:p-6 flex flex-col">
+                <div class="max-w-full h-full flex flex-col">
+                    <div class="bg-white lg:rounded-xl lg:shadow-sm lg:border lg:border-indigo-50 overflow-hidden flex flex-col h-full max-h-[calc(100vh-140px)]">
+                        
+                        <div class="overflow-x-auto overflow-y-auto flex-1">
+                            <table class="hidden lg:table w-full text-left border-separate border-spacing-0">
+                                <thead>
+                                    <tr>
+                                        <th class="sticky top-0 z-20 bg-indigo-50 px-3 py-2 text-xs font-bold text-gray-500 uppercase tracking-widest border-b border-indigo-100">
+                                            Título
+                                        </th>
+                                        <th class="sticky top-0 z-20 bg-indigo-50 px-3 py-2 text-xs font-bold text-gray-500 uppercase tracking-widest border-b border-indigo-100">
+                                            Cant. Controles
+                                        </th>
+                                        <th class="sticky top-0 z-20 bg-indigo-50 px-3 py-2 text-xs font-bold text-gray-500 uppercase tracking-widest border-b border-indigo-100">
+                                            Fecha Creación
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-slate-100">
+                                    {% for ficha in fichas %}
+                                    <tr class="hover:bg-indigo-50/50 transition-colors group cursor-pointer" onclick="window.location.href='{% url 'editar_ficha' ficha.id ccpp.id %}'">
+                                        <td class="px-3 py-2.5 border-b border-slate-50">
+                                            <input type="text" value="{{ ficha.PK_titulo|default:'Sin obs.' }}" readonly 
+                                                class="input-invisible w-full bg-transparent border-none p-0 text-xs font-medium text-slate-800 focus:ring-0 cursor-default">
+                                        </td>
+                                        <td class="px-3 py-2.5 border-b border-slate-50">
+                                            <span class="bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-full text-xs font-medium">
+                                                {{ ficha.num_controles|default:"0" }}
+                                            </span>
+                                        </td>
+                                        <td class="px-3 py-2.5 border-b border-slate-50">
+                                            <div class="flex justify-between items-center">
+                                                <span class="text-xs text-slate-500">{{ ficha.fecha_creacion|date:"d M, Y" }}</span>
+                                                <svg class="w-3.5 h-3.5 text-indigo-400 opacity-0 group-hover:opacity-100 transition-opacity" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                                                </svg>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% empty %}
+                                    <tr>
+                                        <td colspan="3" class="px-3 py-6 text-center text-slate-400 italic bg-white">
+                                            No hay fichas registradas.
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+
+                            <div class="lg:hidden grid grid-cols-1 gap-3 p-3" id="contenedor-cards">
+                                {% for ficha in fichas %}
+                                <div class="card-ficha bg-white p-4 rounded-lg border border-slate-100 shadow-sm active:scale-95 transition-transform" 
+                                    onclick="window.location.href='{% url 'editar_ficha' ficha.id ccpp.id %}'">
+                                    <div class="flex justify-between items-start mb-2">
+                                        <h3 class="text-slate-700 font-bold text-sm flex-1 pr-3 card-titulo-texto">{{ ficha.PK_titulo }}</h3>
+                                        <span class="bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded text-xs font-bold card-controles-valor">
+                                            {{ ficha.num_controles|default:"0" }} ctrs
+                                        </span>
+                                    </div>
+                                    <div class="flex items-center justify-between text-slate-400">
+                                        <div class="flex items-center text-xs">
+                                            <svg class="w-3.5 h-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                                            </svg>
+                                            {{ ficha.fecha_creacion|date:"d M, Y" }}
+                                        </div>
+                                        <span class="text-indigo-400 text-xs font-medium flex items-center">
+                                            Editar <svg class="w-3 h-3 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                                        </span>
+                                    </div>
+                                </div>
+                                {% empty %}
+                                <div class="text-center py-8 text-slate-400 italic">No hay fichas registradas.</div>
+                                {% endfor %}
+                            </div>
+                        </div>
+
+                        <div class="px-3 py-2 border-t border-indigo-50 bg-slate-50/50 flex justify-between items-center">
+                            <span class="text-xs text-slate-400 font-medium">Total: {{ fichas|length }} fichas</span>
+                        </div>
+
+                    </div>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <div id="fondo-oscuro" class="fixed inset-0 bg-black/50 z-40 hidden lg:hidden" onclick="alternarMenu()"></div>
+
+    <script>
+        function alternarMenu() {
+            const menuLateral = document.getElementById('sidebar-principal');
+            const fondoOscuro = document.getElementById('fondo-oscuro');
+            
+            if (menuLateral.classList.contains('-translate-x-full')) {
+                menuLateral.classList.remove('-translate-x-full');
+                menuLateral.classList.add('translate-x-0');
+                fondoOscuro.classList.remove('hidden');
+            } else {
+                menuLateral.classList.remove('translate-x-0');
+                menuLateral.classList.add('-translate-x-full');
+                fondoOscuro.classList.add('hidden');
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const inputTitulo = document.getElementById('filtro-titulo');
+            const inputControles = document.getElementById('filtro-controles');
+
+            function filtrarTodo() {
+                const textoBusqueda = inputTitulo.value.toLowerCase();
+                const minControles = parseInt(inputControles.value) || 0;
+                
+                // 1. FILTRAR TABLA (Escritorio)
+                const filas = document.querySelectorAll('tbody tr');
+                filas.forEach(fila => {
+                    if (fila.cells.length < 3) return;
+                    const titulo = fila.cells[0].textContent.toLowerCase();
+                    const cantidad = parseInt(fila.cells[1].textContent.trim()) || 0;
+                    
+                    const coincide = titulo.includes(textoBusqueda) && cantidad >= minControles;
+                    fila.style.display = coincide ? "" : "none";
+                });
+
+                // 2. FILTRAR TARJETAS (Móvil)
+                const tarjetas = document.querySelectorAll('.card-ficha');
+                tarjetas.forEach(card => {
+                    const titulo = card.querySelector('.card-titulo-texto').textContent.toLowerCase();
+                    const cantTexto = card.querySelector('.card-controles-valor').textContent.trim();
+                    const cantidad = parseInt(cantTexto) || 0;
+
+                    const coincide = titulo.includes(textoBusqueda) && cantidad >= minControles;
+                    card.style.display = coincide ? "" : "none";
+                });
+            }
+
+            inputTitulo.addEventListener('input', filtrarTodo);
+            inputControles.addEventListener('input', filtrarTodo);
+
+            window.limpiarFiltros = function() {
+                inputTitulo.value = '';
+                inputControles.value = '';
+                filtrarTodo();
+            }
+        });
+    </script>
+
+</body>
+</html>
