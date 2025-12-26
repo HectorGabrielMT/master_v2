@@ -87,7 +87,7 @@ def gestionar_unidad(request, unidad_id=None):
             contexto.update({
                 'unidad_id': unidad_id,
                 'unidad_val': unidad_existente.unidad,
-                'unidad_nombre': unidad_existente.unidad,  # Para mostrar en título y modal
+                'unidad_nombre': unidad_existente.unidad,  
                 'capitulo_val': unidad_existente.capitulo,
                 'descripcion_val': unidad_existente.descripcion,
                 'observacion_val': unidad_existente.observacion,

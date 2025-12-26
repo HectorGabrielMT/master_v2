@@ -94,6 +94,9 @@ class tbl_Ficha(models.Model):
     foto = models.ImageField(upload_to='imagenes_ficha/', null=True, blank=True, verbose_name="Imagen de anexo")
     fecha_creacion = models.DateField(auto_now_add=True, verbose_name='Fecha de la Ficha')
 
+
+
+
 class tbl_FichaControl(models.Model):
     FK_FichaControl = models.ForeignKey(tbl_Ficha, on_delete=models.CASCADE)
     FK_FichaControlInspeccion = models.ForeignKey(tbl_inspeccion, on_delete=models.SET_NULL, null=True, blank=True, verbose_name='Inspección')
@@ -107,19 +110,13 @@ class tbl_FichaControl(models.Model):
 
 
 
-
-
-
-
-
-
 class tbl_Notificacion(models.Model):
 
     FK_cronograma = models.ForeignKey(tbl_Cronograma, on_delete=models.CASCADE, verbose_name="Cronograma Relacionado", related_name="notificaciones")
     PK_mes = models.CharField(max_length=20, verbose_name="Mes")
     FK_ficha = models.ForeignKey(tbl_Ficha, on_delete=models.SET_NULL, null=True, blank=True, verbose_name="Ficha relacionada")
 
-    fecha = models.DateField(verbose_name="Fecha de Notificación", null=True, blank=True)
+    fecha = models.DateField(auto_now_add=True, verbose_name="Fecha de Notificación", null=True, blank=True)
     para = models.TextField(verbose_name="Para", blank=True)
     cc = models.TextField(verbose_name="CC", blank=True)
     cco = models.TextField(verbose_name="CCO", blank=True)
@@ -155,9 +152,22 @@ class tbl_NotificacionDocumento(models.Model):
         verbose_name_plural = "Documentos de Notificaciones"
 
 
+
+
+
 class tbl_Correo(models.Model):
     asunto = models.CharField(max_length=255, verbose_name="Asunto")
     cuerpo = models.TextField(verbose_name="Cuerpo del Correo")
+
+
+
+
+
+
+
+
+
+
 
 
 

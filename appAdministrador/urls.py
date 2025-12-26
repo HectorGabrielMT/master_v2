@@ -2,6 +2,8 @@ from django.urls import path
 from appAdministrador.views.dataMaestra import ordenar_capitulos, unidad, CCPP, correo, inspeccion, confi_correo
 from appAdministrador.views.gestion import cronograma, ficha, notificacion, reporte
 from appAdministrador.views.autenticacion import autenticacion, usuarios
+from appAdministrador.views.reporte import reporte_noti, reporte_insp,reporte_fichas
+
 
 from . import views
 
@@ -64,10 +66,31 @@ urlpatterns = [
 
      
      # FICHAS
+    # path('fichas/unidad/<int:unidad_id>/', ficha.vista_panel_ficha, name='vista_panel_fichas_unidad'),
+
+
+    # path('fichas/unidad/<int:unidad_id>/ccpp/<int:ccpp_id>/', ficha.vista_panel_ficha, name='vista_panel_fichas'),
+     #path('ficha/nueva/<int:unidad_id>/ccpp/<int:ccpp_id>/', ficha.gestionar_ficha, name='nueva_ficha'),
+     #path('ficha/editar/<int:ficha_id>/ccpp/<int:ccpp_id>/', ficha.gestionar_ficha, name='editar_ficha'),
+     #path('ficha/eliminar/<int:ficha_id>/<int:ccpp_id>/', ficha.eliminar_ficha, name='eliminar_ficha'),
+
+
+
+     # Panel de Fichas
      path('fichas/unidad/<int:unidad_id>/ccpp/<int:ccpp_id>/', ficha.vista_panel_ficha, name='vista_panel_fichas'),
+     path('fichas/unidad/<int:unidad_id>/', ficha.vista_panel_ficha_sin_ccpp, name='vista_panel_fichas_simple'),
+
+     # Nueva Ficha
      path('ficha/nueva/<int:unidad_id>/ccpp/<int:ccpp_id>/', ficha.gestionar_ficha, name='nueva_ficha'),
+     path('ficha/nueva/<int:unidad_id>/', ficha.gestionar_ficha_sin_ccpp, name='nueva_ficha_simple'),
+
+     # Editar Ficha
      path('ficha/editar/<int:ficha_id>/ccpp/<int:ccpp_id>/', ficha.gestionar_ficha, name='editar_ficha'),
+     path('ficha/editar/<int:ficha_id>/', ficha.gestionar_ficha_sin_ccpp, name='editar_ficha_simple'),
+
+     # Eliminar Ficha
      path('ficha/eliminar/<int:ficha_id>/<int:ccpp_id>/', ficha.eliminar_ficha, name='eliminar_ficha'),
+     path('ficha/eliminar/<int:ficha_id>/', ficha.eliminar_ficha_sin_ccpp, name='eliminar_ficha_simple'),
 
 
 
@@ -121,6 +144,16 @@ urlpatterns = [
 
 
 
+
+    #REPORTE
+    path('reporte/notificaciones/<int:ccpp_id>/<int:anio>/<int:mes_inicio>/<int:mes_fin>/<str:mostrar_remitentes>/<str:mostrar_respuesta>/', 
+         reporte_noti.reporte_notificaciones_ccpp_pdf, 
+         name='reporte_notificaciones_ccpp'),
+
+     path('reporte/inspecciones/<int:ccpp_id>/<int:anio>/', reporte_insp.reporte_inspecciones_ccpp_pdf, name='reporte_inspecciones_pdf'),
+
+
+     path('exportar-pdf/<int:ccpp_id>/', reporte_fichas.reporte_ccpp_final, name='exportar_pdf_consolidado'),
 
 
 

@@ -25,12 +25,11 @@
 <body class="bg-slate-50 font-sans antialiased text-slate-900">
 {% include 'base/mensajes.html' %}
     <div class="flex h-screen overflow-hidden">
-        
         <aside id="sidebar-principal" class="fixed inset-y-0 left-0 w-64 bg-white shadow-xl flex flex-col z-50 border-r border-indigo-50 h-full flex-shrink-0 transition-transform duration-300 transform -translate-x-full lg:relative lg:translate-x-0">
             <div class="p-4 border-b border-indigo-50 relative">
                 
                 <div class="absolute left-4 top-5">
-                    <a href="{% url 'panel_principal' %}" class="text-slate-400 hover:text-indigo-600 transition-colors flex items-center">
+                    <a href=" {% if ccpp.id %} {% url 'gestion_ccpp' ccpp.id %} {% else %} {% url 'editar_unidad' unidad.pk  %} {% endif %} " class="text-slate-400 hover:text-indigo-600 transition-colors flex items-center">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
                         </svg>
@@ -67,12 +66,21 @@
                     </p>
                     
                     <div class="space-y-1">
-                        <a href="{% url 'nueva_ficha' unidad.pk ccpp.id %}" class="w-full flex items-center px-3 py-2.5 text-slate-600 hover:bg-indigo-50 hover:text-indigo-700 rounded-lg transition-all duration-200 group">
-                            <svg class="w-4 h-4 mr-2 text-slate-400 group-hover:text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-                            </svg>
-                            <span class="text-xs font-medium">Nueva ficha</span>
-                        </a>
+                        {% if ccpp.id %}
+                            <a href="{% url 'nueva_ficha' unidad.pk ccpp.id %}" class="w-full flex items-center px-3 py-2.5 text-slate-600 hover:bg-indigo-50 hover:text-indigo-700 rounded-lg transition-all duration-200 group">
+                                <svg class="w-4 h-4 mr-2 text-slate-400 group-hover:text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                                </svg>
+                                <span class="text-xs font-medium">Nueva ficha</span>
+                            </a>
+                        {% else %}
+                            <a href="{% url 'nueva_ficha_simple' unidad.pk %}" class="w-full flex items-center px-3 py-2.5 text-slate-600 hover:bg-indigo-50 hover:text-indigo-700 rounded-lg transition-all duration-200 group">
+                                <svg class="w-4 h-4 mr-2 text-slate-400 group-hover:text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                                </svg>
+                                <span class="text-xs font-medium">Nueva ficha</span>
+                            </a>
+                        {% endif %}
                     </div>
                 </div>
 
@@ -203,25 +211,26 @@
                         <h1 class="text-lg font-bold text-slate-800 tracking-tight leading-none">
                             Panel de Fichas
                         </h1>
+                        {% if ccpp.id %}
+                            <nav class="hidden md:flex items-center text-xs font-medium">
+                                <span class="mx-1.5 text-slate-300">|</span>
+                                <div class="flex items-center gap-1.5">
+                                    <a href="{% url 'panel_principal' %}" class="text-slate-400 hover:text-indigo-600 transition-colors">Inicio</a>
 
-                        <nav class="hidden md:flex items-center text-xs font-medium">
-                            <span class="mx-1.5 text-slate-300">|</span>
-                            <div class="flex items-center gap-1.5">
-                                <a href="{% url 'panel_principal' %}" class="text-slate-400 hover:text-indigo-600 transition-colors">Inicio</a>
+                                    <svg class="w-3.5 h-3.5 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                                    </svg>
 
-                                <svg class="w-3.5 h-3.5 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
-                                </svg>
+                                    <a href="{% url 'gestion_ccpp' ccpp.id %}" class="text-slate-400 hover:text-indigo-600 transition-colors">Cronograma</a>
 
-                                <a href="{% url 'gestion_ccpp' ccpp.id %}" class="text-slate-400 hover:text-indigo-600 transition-colors">Cronograma</a>
+                                    <svg class="w-3.5 h-3.5 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                                    </svg>
 
-                                <svg class="w-3.5 h-3.5 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
-                                </svg>
-
-                                <a href="{% url 'vista_panel_fichas' unidad.pk ccpp.pk %}" class="text-indigo-600 font-semibold">Fichas</a>
-                            </div>
-                        </nav>
+                                    <a href="{% url 'vista_panel_fichas' unidad.pk ccpp.pk %}" class="text-indigo-600 font-semibold">Fichas</a>
+                                </div>
+                            </nav>
+                        {% endif %}
                     </div>
                 </div>
             </header>
@@ -248,7 +257,12 @@
                                 </thead>
                                 <tbody class="divide-y divide-slate-100">
                                     {% for ficha in fichas %}
-                                    <tr class="hover:bg-indigo-50/50 transition-colors group cursor-pointer" onclick="window.location.href='{% url 'editar_ficha' ficha.id ccpp.id %}'">
+                                    <tr class="hover:bg-indigo-50/50 transition-colors group cursor-pointer"
+                                        {% if ccpp.id %}
+                                            onclick="window.location.href='{% url 'editar_ficha' ficha.id ccpp.id %}'"
+                                        {% else %}
+                                            onclick="window.location.href='{% url 'editar_ficha_simple' ficha.id %}'"
+                                        {% endif %}>
                                         <td class="px-3 py-2.5 border-b border-slate-50">
                                             <input type="text" value="{{ ficha.PK_titulo|default:'Sin obs.' }}" readonly 
                                                 class="input-invisible w-full bg-transparent border-none p-0 text-xs font-medium text-slate-800 focus:ring-0 cursor-default">
@@ -280,7 +294,12 @@
                             <div class="lg:hidden grid grid-cols-1 gap-3 p-3" id="contenedor-cards">
                                 {% for ficha in fichas %}
                                 <div class="card-ficha bg-white p-4 rounded-lg border border-slate-100 shadow-sm active:scale-95 transition-transform" 
-                                    onclick="window.location.href='{% url 'editar_ficha' ficha.id ccpp.id %}'">
+                                    {% if ccpp.id %}
+                                        onclick="window.location.href='{% url 'editar_ficha' ficha.id ccpp.id %}'"
+                                    {% else %}
+                                        onclick="window.location.href='{% url 'editar_ficha_simple' ficha.id %}'"
+                                    {% endif %}>
+                                
                                     <div class="flex justify-between items-start mb-2">
                                         <h3 class="text-slate-700 font-bold text-sm flex-1 pr-3 card-titulo-texto">{{ ficha.PK_titulo }}</h3>
                                         <span class="bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded text-xs font-bold card-controles-valor">

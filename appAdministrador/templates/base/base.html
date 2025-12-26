@@ -63,12 +63,6 @@
                         <span>Principal</span>
                     </a>
 
-                    <a href="{% url 'panel_usuarios' %}" 
-                    class="flex items-center px-3 py-2.5 mb-1 rounded-lg text-slate-500 font-medium transition-all duration-200 hover:bg-indigo-50 hover:text-indigo-600 hover:translate-x-1 text-sm {% if 'usuarios' in request.path %}bg-indigo-50 text-indigo-600 font-semibold border-l-3 border-indigo-600{% endif %}">
-                        <i class="fas fa-users w-5 mr-3 text-base"></i>
-                        <span>Usuarios</span>
-                    </a>
-
                     <div id="maestros-dropdown">
                         <button type="button" aria-controls="maestros-panel" aria-expanded="false" 
                                 class="flex items-center px-3 py-2.5 mb-1 rounded-lg text-slate-500 font-medium transition-all duration-200 hover:bg-indigo-50 hover:text-indigo-600 hover:translate-x-1 w-full justify-between group text-sm">
@@ -105,6 +99,11 @@
                             class="flex items-center px-3 py-2 rounded-lg text-xs text-slate-500 font-medium transition-all duration-200 hover:bg-indigo-50 hover:text-indigo-600 hover:translate-x-1 {% if 'inspecciones' in request.path %}bg-indigo-50 text-indigo-600 font-semibold{% endif %}">
                                 <i class="fas fa-clipboard-check w-4 mr-2 text-sm"></i> 
                                 Inspecciones
+                            </a>
+                            <a href="{% url 'panel_usuarios' %}" 
+                            class="flex items-center px-3 py-2 rounded-lg text-xs text-slate-500 font-medium transition-all duration-200 hover:bg-indigo-50 hover:text-indigo-600 hover:translate-x-1 {% if 'usuarios' in request.path %}bg-indigo-50 text-indigo-600 font-semibold{% endif %}">
+                                <i class="fas fa-clipboard-check w-4 mr-2 text-sm"></i> 
+                                Usuarios
                             </a>
                         </div>
                     </div>

@@ -29,11 +29,19 @@
             <div class="p-4 border-b border-indigo-50 relative">
 
                 <div class="absolute left-4 top-5">
-                    <a href="{% url 'vista_panel_fichas' unidad_id=unidad.pk ccpp_id=ccpp.pk %}" class="text-slate-400 hover:text-indigo-600 transition-colors flex items-center">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
-                        </svg>
-                    </a>
+                    {% if ccpp %}
+                        <a href="{% url 'vista_panel_fichas' unidad_id=unidad.pk ccpp_id=ccpp.pk %}" class="text-slate-400 hover:text-indigo-600 transition-colors flex items-center">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                            </svg>
+                        </a>
+                    {% else %}
+                        <a href="{% url 'vista_panel_fichas_simple' unidad_id=unidad.pk %}" class="text-slate-400 hover:text-indigo-600 transition-colors flex items-center">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                            </svg>
+                        </a>
+                    {% endif %}
                 </div>
 
                 <div class="flex flex-col items-center">
@@ -74,7 +82,7 @@
                         </button>
                     </div>
                     
-                    {% if edicion %}
+                    {% if edicion and ccpp %}
                         <div class="mt-3">
                             <div class="space-y-1">
                                 <a href="{% url 'exportar_ficha_pdf' ficha.id ccpp.pk %}" 
@@ -183,26 +191,33 @@
                             {% else %} 
                                 Nueva Ficha de Datos
                             {% endif %}
-                        </h1>
+                        </h1>   
+                        {% if ccpp %} 
+                            <nav class="hidden md:flex items-center text-xs font-medium">
+                                <span class="mx-1.5 text-slate-300">|</span>
+                                <div class="flex items-center gap-1.5">
+                                    <a href="{% url 'panel_principal' %}" class="text-slate-400 hover:text-indigo-600 transition-colors">Inicio</a>
+                                    
+                                    <svg class="w-3.5 h-3.5 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                                    </svg>
+                                    
+                                    <a href="{% url 'gestion_ccpp' ccpp.id %}" class="text-slate-400 hover:text-indigo-600 transition-colors">Cronograma</a>
 
-                        <nav class="hidden md:flex items-center text-xs font-medium">
-                            <span class="mx-1.5 text-slate-300">|</span>
-                            <div class="flex items-center gap-1.5">
-                                <a href="{% url 'panel_principal' %}" class="text-slate-400 hover:text-indigo-600 transition-colors">Inicio</a>
-                                
-                                <svg class="w-3.5 h-3.5 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
-                                </svg>
+                                    <svg class="w-3.5 h-3.5 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                                    </svg>
 
-                                <a href="{% url 'vista_panel_fichas' unidad.pk ccpp.pk %}" class="text-slate-400 hover:text-indigo-600 transition-colors">Fichas</a>
+                                    <a href="{% url 'vista_panel_fichas' unidad.pk ccpp.pk %}" class="text-slate-400 hover:text-indigo-600 transition-colors">Fichas</a>
 
-                                <svg class="w-3.5 h-3.5 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
-                                </svg>
+                                    <svg class="w-3.5 h-3.5 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                                    </svg>
 
-                                <span class="text-indigo-600 font-semibold">Gestión</span>
-                            </div>
-                        </nav>
+                                    <span class="text-indigo-600 font-semibold">Gestión</span>
+                                </div>
+                            </nav>
+                        {% endif %}
                     </div>
                 </div>
             </header>
@@ -210,8 +225,22 @@
             <section class="flex-1 overflow-y-auto pt-3 px-4 pb-6 sm:px-6">
                 <div class="max-w-full">
                     <form id="form-ficha-completo" 
-                        action="{% if edicion %}{% url 'editar_ficha' ficha_id=ficha.id ccpp_id=ccpp.id %}{% else %}{% url 'nueva_ficha' unidad_id=unidad.id ccpp_id=ccpp.id %}{% endif %}" 
-                        method="POST" enctype="multipart/form-data" class="space-y-4">
+                        action="{% if edicion %}
+                                    {% if ccpp %}
+                                        {% url 'editar_ficha' ficha_id=ficha.id ccpp_id=ccpp.id %}
+                                    {% else %}
+                                        {% url 'editar_ficha_simple' ficha_id=ficha.id %}
+                                    {% endif %}
+                                {% else %}
+                                    {% if ccpp %}
+                                        {% url 'nueva_ficha' unidad_id=unidad.id ccpp_id=ccpp.id %}
+                                    {% else %}
+                                        {% url 'nueva_ficha_simple' unidad_id=unidad.id %}
+                                    {% endif %}
+                                {% endif %}" 
+                        method="POST" 
+                        enctype="multipart/form-data" 
+                        class="space-y-4">
                         {% csrf_token %}
 
                         <div class="bg-white p-4 rounded-lg shadow-sm border border-indigo-50">
@@ -680,7 +709,7 @@
             
             // 1. Actualizamos la URL del formulario dinámicamente
             // Usamos el ID de la ficha y el ID del CCPP que viene de Django
-            form.action = `/ficha/eliminar/${idFicha}/{{ ccpp.id }}/`;
+            form.action = `/ficha/eliminar/${idFicha}/{% if ccpp.id %}?ccpp_id={{ ccpp.id }}/{% endif %}`;
 
             // 2. Quitamos 'hidden' para que el elemento exista en el DOM
             modal.classList.remove('hidden');
